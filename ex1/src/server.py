@@ -6,7 +6,7 @@ def main():
 
     #in case of error, print it and exit after closing the socket.
     try:
-        s.bind(('', sys.argv[1]))
+        s.bind(('', int(sys.argv[1])))
     except Exception as e:
         print(e)
         s.close()

@@ -6,7 +6,7 @@ def main():
 
     while True:
         data, addr = s.recvfrom(100)
-        print(str(data), addr)
+        print(data.decode("utf-8"))
         s.sendto(data, addr)
 
 
