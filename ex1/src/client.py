@@ -1,16 +1,39 @@
 import socket
+import sys
+
+def recieveData(sock):
+    data,addr = sock.recvfrom(100)
+    return data.decode()
+
+def sendData(sock,data,sockAddr):
+    i=0
+    while (i<len(data)):
+        sliceData=""
+        if (i+100<len(data)):
+            sliceData = data[i:i+100]
+        else:
+            sliceData = data[i:]
+        i+=100
+        sock.sendto(sliceData.encode(),sockAddr)
+        if (recieveData(sock)==sliceData):
+            pass
+
+
+def readFile(fileName):
+    fileData = open(fileName,'r').read()
+    return fileData
 
 def main():
+    args = sys.argv[1:]
+    if (len(args)!=3):
+        print("Got wrong number of arguments")
+        exit(1)
+
+    ip,port,fileName = args
+    fileData = readFile(fileName)
+
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-
-    s.sendto(b'1\n Yogev Abarbanel - 326116910, Ido Barkai - 326629987', ('127.0.0.1', 12345))
-    data, addr = s.recvfrom(1024)
-    print(str(data), addr)
-    s.sendto(b'1\n Yogev Abarbanel - 326116910, Ido Barkai - 326629987', ('127.0.0.1', 12345))
-    s.sendto(b'2\n, Yogev', ('127.0.0.1', 12345))
-    data, addr = s.recvfrom(1024)
-    print(str(data), addr)
-
+    sendData(s,fileData,(ip,int(port)))
     s.close()
 
 if __name__ == "__main__":
