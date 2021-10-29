@@ -17,17 +17,17 @@ def main():
     #wiating for packets from client
     while True:
         data, addr = s.recvfrom(100)
-        data = data.decode("utf-8").split('\n', 1)
-        packetNumber, massage = data[0], data[1]
+        data = data.decode("utf-8")
+        packetNumber, message = data.split('\n',1)[0], data.split('\n',1)[1]
 
         #check that the packet the client send, is the one that should be sent.
         #if not, it ignore it.
         if int(packetNumber) == expactedPacketnumber:
-            print(str(massage), end='')
-            s.sendto(massage.encode(), addr)
+            print(str(message), end='')
+            s.sendto(data.encode(), addr)
             expactedPacketnumber += 1
         else:
-            s.sendto(massage.encode(), addr)
+            s.sendto(data.encode(), addr)
 
 if __name__ == "__main__":
     main()

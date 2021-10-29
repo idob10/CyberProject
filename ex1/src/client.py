@@ -19,7 +19,7 @@ def sendData(sock,data,sockAddr):
         sock.sendto(sliceData.encode(),sockAddr)
         while True:
             try:
-                if (recieveData(sock)==sliceData.split("\n",1)[1]):
+                if (recieveData(sock)==sliceData):
                     packetNum+=1
                     break
             except socket.timeout as e:
