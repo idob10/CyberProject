@@ -26,6 +26,8 @@ def main():
             print(str(massage), end='')
             s.sendto(massage.encode(), addr)
             expactedPacketnumber += 1
+        else:
+            s.sendto(massage.encode(), addr)
 
 if __name__ == "__main__":
     main()
