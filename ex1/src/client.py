@@ -7,16 +7,23 @@ def recieveData(sock):
 
 def sendData(sock,data,sockAddr):
     i=0
+    packetNum=1
     while (i<len(data)):
-        sliceData=""
-        if (i+100<len(data)):
-            sliceData = data[i:i+100]
+        sliceData=str(packetNum)+"\n"
+        curLen = len(sliceData)
+        if (i+100-curLen<len(data)):
+            sliceData += data[i:i+100-curLen]
         else:
-            sliceData = data[i:]
-        i+=100
+            sliceData += data[i:]
+        i+=100-curLen
         sock.sendto(sliceData.encode(),sockAddr)
-        if (recieveData(sock)==sliceData):
-            pass
+        while True:
+            try:
+                if (recieveData(sock)==sliceData.split("\n",1)[1]):
+                    packetNum+=1
+                    break
+            except socket.timeout as e:
+                sock.sendto(sliceData.encode(),sockAddr)
 
 
 def readFile(fileName):
@@ -30,10 +37,22 @@ def main():
         exit(1)
 
     ip,port,fileName = args
-    fileData = readFile(fileName)
+    fileData = ""
+    try:
+        fileData = readFile(fileName)
+    except Exception as e:
+        print(e)
+        exit(1)
 
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    sendData(s,fileData,(ip,int(port)))
+    s.settimeout(2)
+    try:
+        sendData(s,fileData,(ip,int(port)))
+    except Exception as e:
+        print(e)
+        s.close()
+        exit(1)
+        
     s.close()
 
 if __name__ == "__main__":
