@@ -23,7 +23,7 @@ def main():
         #check that the packet the client send, is the one that should be sent.
         #if not, it ignore it.
         if int(packetNumber) == expactedPacketnumber:
-            print(str(message), end='')
+            print(str(message), end='', flush=True)
             s.sendto(data.encode(), addr)
             expactedPacketnumber += 1
         else:
