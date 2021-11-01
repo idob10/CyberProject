@@ -3,7 +3,7 @@ import sys
 
 def recieveData(sock):
     data,addr = sock.recvfrom(100)
-    return data.decode()
+    return data.decode("utf-8")
 
 def sendData(sock,data,sockAddr):
     i=0
