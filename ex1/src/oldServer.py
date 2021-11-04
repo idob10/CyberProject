@@ -2,7 +2,7 @@ import socket
 
 def main():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    s.bind(('', 12345))
+    s.bind(('', 23456))
 
     while True:
         data, addr = s.recvfrom(100)
