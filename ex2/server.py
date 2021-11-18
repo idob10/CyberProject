@@ -6,6 +6,8 @@ import string
 import random
 import utils
 
+clientList = {}
+
 def id_generator():
     chars = string.ascii_uppercase + string.ascii_lowercase + string.digits
     return ''.join(random.choice(chars) for _ in range(128))
@@ -16,16 +18,23 @@ def sendMsg(sock,msg):
 def getMsg(sock):
     return sock.recv(1024).decode()
 
-def handleClient(clientSock):
+def handleClient(clientSock,clientAddr):
     msg = getMsg(clientSock)
     if (msg=="new client"):
         id = id_generator()
         print (id)
-        #sendMsg(clientSock,id)
-        utils.createFile(f'./try')
-
+        sendMsg(clientSock,id)
+        utils.createFile(f'./{id}')
+        clientList[id]=[{clientAddr:[]}]
     else:
-        pass
+        id = getMsg()
+        #new client, need to download
+        if (clientAddr not in clientList[id]):
+            clientList[id].append({clientAddr:[]})
+        else: #already connected
+
+    
+    
 
 
 def main():
@@ -34,7 +43,7 @@ def main():
     server.listen(5)
     while True:
         client_socket, client_address = server.accept()
-        handleClient(client_socket)
+        handleClient(client_socket,client_address)
         client_socket.close()
 
 
