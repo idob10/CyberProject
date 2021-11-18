@@ -1,7 +1,4 @@
 import socket
-import os
-import time
-import sys
 import string
 import random
 import utils
