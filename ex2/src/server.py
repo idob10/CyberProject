@@ -31,7 +31,7 @@ def handleClient(clientSock,clientAddr):
         print (id)
         sendMsg(clientSock, id)
         d = utils.DirectoryApplayer(id,clientSock)
-        d.createFile(f'./{id}',True)
+        d.createFile(f'./serverFiles/{id}',True)
         clientList[id]={clientAddr:[]}
     else:
         id = msg
@@ -40,14 +40,15 @@ def handleClient(clientSock,clientAddr):
         try:
             if (clientAddr not in clientList[id]):
                 clientList[id].append({clientAddr:[]})
-                d.sendDir(f'./{id}')
+                d.sendDir(f'./serverFiles/{id}')
+                sendMsg(clientSock, utils.PROTOCOL_END_OF_MODIFICATION)
         except:
             sendMsg(clientSock,'Client does not exsist in the system')
 
     handleCommands(clientSock,clientAddr,id)
 
 def handleCommands(sock,clientAddr,id):
-    d = utils.DirectoryApplayer(id,sock)
+    d = utils.DirectoryApplayer(f'./serverFiles/{id}',sock)
     while (True): #need to reconect?
         cmd = getMsg(sock)
         d.handleNewModify(cmd)

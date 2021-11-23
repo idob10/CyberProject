@@ -27,7 +27,7 @@ class DirectoryObserver(FileSystemEventHandler):
         self._modify_queue.append(event.event_type + ',' + event.src_path+','+event.is_directory)
 
     def on_created(self, event):
-        self._modify_queue.append(event.event_type + ',' + event.src_path+','+event.is_directory)
+        self._modify_queue.append(event.event_type + ',' + event.src_path+','+str(event.is_directory))
 
     def get_modify_queue(self):
         return self._modify_queue
