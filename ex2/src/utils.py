@@ -47,19 +47,23 @@ class DirectoryApplayer:
         os.rename(self._folder_path + '\\' + srcPath, self._folder_path + '\\' + dstPath)
 
     def copy_file(self, filePath):
-        with open(self._folder_path + '\\' + filePath,'w') as f:
+        with open(self._folder_path + '\\' + filePath,'wb') as f:
             data = self._sock.recv(1024)
+            print("recv:" + data.decode())
             while data.decode() != PROTOCOL_END_OF_FILE:
                 f.write(data)
                 self._sock.send(PROTOCOL_ACK.encode())
+                print("send:" + PROTOCOL_ACK)
                 data = self._sock.recv(1024)
+
+            self._sock.send(PROTOCOL_ACK.encode())
             f.close()
 
     def createFile(self, filePath,isDir):
         if isDir == "False":
             self.copy_file(filePath)
         else:
-            os.makedirs(filePath, exist_ok=True)
+            os.makedirs(self._folder_path + "\\" + filePath, exist_ok=True)
 
     def handleNewModify(self, command):
         command = command.split(',',3)
@@ -79,21 +83,20 @@ class DirectoryApplayer:
         
         for filePath in listOfFiles:
             sendMsg(self._sock, "created,"+filePath+",False")
-            sendFile(filePath,self._sock)
+            sendFile(os.path.join(dirName,filePath),self._sock)
 
         for filePath in listOfDirs:
-            self._sock.send(("created,"+filePath+",True").encode())
+            sendMsg(self._sock, "created,"+filePath+",True")
 
 def sendFile(filePath, sock):
     try:
         with open(filePath, 'r') as f:
             data = f.read(1024)
             while len(data) != 0:
-                sock.send(data)
-                sock.recv(1024) #getting the ack
+                sendMsg(sock, data)
                 data = f.read(1024)
 
-            sock.send(PROTOCOL_END_OF_FILE.encode())
+            sendMsg(sock, PROTOCOL_END_OF_FILE)
             f.close()
     except Exception:
-        sock.send(PROTOCOL_END_OF_FILE.encode())
+        sendMsg(sock, PROTOCOL_END_OF_FILE)

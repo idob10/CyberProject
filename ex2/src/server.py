@@ -19,14 +19,18 @@ def id_generator(length):
 
 def sendMsg(sock,msg):
     sock.send(msg.encode())
-    sock.recv(1024)
+    print("send:" + msg)
+    r = sock.recv(1024)
+    print("recv:" + r.decode())
 
 def getMsg(sock):
     msg = sock.recv(1024).decode()
+    print("recv:" + msg)
     sock.send(utils.PROTOCOL_ACK.encode())
+    print("send:" + utils.PROTOCOL_ACK)
     return msg
 
-def handleClient(clientSock,clientAddr):
+def handleClient(clientSock):
     msg = getMsg(clientSock)
     print(msg)
     if (msg==NEW_CLIENT_MASSAGE):
@@ -34,20 +38,30 @@ def handleClient(clientSock,clientAddr):
         clientId = id_generator(10)
         print (id)
         sendMsg(clientSock, id+","+clientId)
-        d = utils.DirectoryApplayer(id,clientSock)
-        d.createFile(f'./serverFiles/{id}',"True")
-        clientList[id]={clientAddr:[]}
+        clientSock.send(utils.PROTOCOL_ACK.encode())
+        d = utils.DirectoryApplayer(f'./serverFiles/{id}',clientSock)
+        d.createFile("","True")
+        clientList[id]={clientId:[]}
     else:
         id,clientId = msg.split(',',1)
+        sendMsg(clientSock, id)
         d = utils.DirectoryApplayer(id,clientSock)
         #new client, need to download
         if (clientId not in clientList[id]):
                 clientList[id].append({clientId:[]})
                 d.sendDir(f'./serverFiles/{id}')
                 sendMsg(clientSock, utils.PROTOCOL_END_OF_MODIFICATION)
-    handleCommands(clientSock,clientAddr,id)
+        else:
+                # upload the changes
+            while len(clientList[id][clientId]) != 0:
+                command = clientList[id][clientId].pop(0)
+                sendMsg(clientSock, command)
+                if command.split(',')[0] == "created":
+                    utils.sendFile(command.split(',')[1], clientSock)
 
-def handleCommands(sock,clientAddr,id):
+    handleCommands(clientSock,clientId,id)
+
+def handleCommands(sock,clientId,id):
     d = utils.DirectoryApplayer(f'./serverFiles/{id}',sock)
     while (True): #need to reconect?
         cmd = getMsg(sock)
@@ -55,7 +69,7 @@ def handleCommands(sock,clientAddr,id):
             break
         d.handleNewModify(cmd)
         for key,value in clientList[id].items():
-            if key!=clientAddr:
+            if key!=clientId:
                 value.append(cmd)
 
 def main():
@@ -64,7 +78,7 @@ def main():
     server.listen(5)
     while True:
         client_socket, client_address = server.accept()
-        handleClient(client_socket,client_address)
+        handleClient(client_socket)
         client_socket.close()
 
 
