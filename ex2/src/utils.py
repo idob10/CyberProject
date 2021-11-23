@@ -33,19 +33,19 @@ class DirectoryObserver(FileSystemEventHandler):
         return self._modify_queue
 
 class DirectoryApplayer:
-    def __init__(self, folder_id, sock):
-        self._folder_id = folder_id
+    def __init__(self, folder_path, sock):
+        self._folder_path = folder_path
         self._sock = sock
 
     def delete(self, path):
-        os.remove(self._folder_id + '\\' + path)
+        os.remove(self._folder_path + '\\' + path)
 
     def moveRename(self, paths):
         srcPath,dstPath = paths.split('\n', 1)
-        os.rename(self._folder_id + '\\' + srcPath, self._folder_id + '\\' + dstPath)
+        os.rename(self._folder_path + '\\' + srcPath, self._folder_path + '\\' + dstPath)
 
     def copy_file(self, filePath):
-        with open(self._folder_id + '\\' + filePath,'w') as f:
+        with open(self._folder_path + '\\' + filePath,'w') as f:
             data = self._sock.recv(1024)
             while data.decode() != PROTOCOL_END_OF_FILE:
                 f.write(data)
@@ -72,8 +72,6 @@ class DirectoryApplayer:
         for (dirpath, dirnames, filenames) in os.walk(dirName):
             listOfFiles += [os.path.join(dirpath, file) for file in filenames]
         return listOfFiles
-
-
 
 def sendFile(filePath, sock):
     try:
