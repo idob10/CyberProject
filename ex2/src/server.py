@@ -5,9 +5,17 @@ import utils
 
 clientList = {}
 
+# protocol constant
+NEW_CLIENT_MASSAGE = "new client"
+CLOSE_CONNECTION = "close connection"
+
 def id_generator():
     chars = string.ascii_uppercase + string.ascii_lowercase + string.digits
-    return ''.join(random.choice(chars) for _ in range(128))
+    id = ''.join(random.choice(chars) for _ in range(128))
+    while id == NEW_CLIENT_MASSAGE:
+        id = ''.join(random.choice(chars) for _ in range(128))
+
+    return id
 
 def sendMsg(sock,msg):
     sock.send(msg.encode())
@@ -18,10 +26,10 @@ def getMsg(sock):
 def handleClient(clientSock,clientAddr):
     msg = getMsg(clientSock)
     print(msg)
-    if (msg=="new client"):
+    if (msg==NEW_CLIENT_MASSAGE):
         id = id_generator()
         print (id)
-        sendMsg(clientSock,id)
+        sendMsg(clientSock, id)
         d = utils.DirectoryApplayer(id,clientSock)
         d.createFile(f'./{id}',True)
         clientList[id]={clientAddr:[]}
