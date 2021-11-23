@@ -19,9 +19,12 @@ def id_generator():
 
 def sendMsg(sock,msg):
     sock.send(msg.encode())
+    sock.recv(1024)
 
 def getMsg(sock):
-    return sock.recv(1024).decode()
+    msg = sock.recv(1024).decode()
+    sock.send(utils.PROTOCOL_ACK.encode())
+    return msg
 
 def handleClient(clientSock,clientAddr):
     msg = getMsg(clientSock)

@@ -76,6 +76,7 @@ class DirectoryApplayer:
         
         for filePath in listOfFiles:
             self._sock.send(("created"+filePath+",False").encode())
+            self._sock.recv()
             sendFile(filePath,self._sock)
 
         for filePath in listOfDirs:
