@@ -3,4 +3,3 @@ import socket
 
 d = DirectoryApplayer("../",socket.socket())
 print(d.downloadDir("../"))
-

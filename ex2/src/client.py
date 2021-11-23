@@ -39,7 +39,7 @@ def updateServer(sock,id, directoryApplayer, modify_queue):
 def main():
     ip = '127.0.0.1'
     port = 12345
-    path = "C:\Yogev\BIU\Second year\Networks\ex2\test"
+    path = f"../test"
     timeout = 5
 
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
