@@ -17,22 +17,33 @@ def getMsg(sock):
 
 def handleClient(clientSock,clientAddr):
     msg = getMsg(clientSock)
+    print(msg)
     if (msg=="new client"):
         id = id_generator()
         print (id)
         sendMsg(clientSock,id)
-        utils.createFile(f'./{id}')
-        clientList[id]=[{clientAddr:[]}]
+        d = utils.DirectoryApplayer(id,clientSock)
+        d.createFile(f'./{id}',True)
+        clientList[id]={clientAddr:[]}
     else:
-        id = getMsg()
+        id = msg
         #new client, need to download
-        if (clientAddr not in clientList[id]):
-            clientList[id].append({clientAddr:[]})
-        else: #already connected
+        try:
+            if (clientAddr not in clientList[id]):
+                clientList[id].append({clientAddr:[]})
+        except:
+            sendMsg(clientSock,'Client does not exsist in the system')
 
-    
-    
+    handleCommands(clientSock,clientAddr,id)
 
+def handleCommands(sock,clientAddr,id):
+    d = utils.DirectoryApplayer(id,sock)
+    while (True): #need to reconect?
+        cmd = getMsg(sock)
+        d.handleNewModify(cmd)
+        for key,value in clientList[id].items():
+            if key!=clientAddr:
+                value.append(cmd)
 
 def main():
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

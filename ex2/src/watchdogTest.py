@@ -6,22 +6,26 @@ from watchdog.events import FileSystemEventHandler
 
 class DirectoryObserver(FileSystemEventHandler):
     def __init__(self, modify_queue):
-        self.modify_queue = modify_queue
+        self._modify_queue = modify_queue
 
     def on_moved(self, event):
-        self.modify_queue.append(event.event_type + ',' + event.src_path + ',' + event.dest_path)
+        self._modify_queue.append(event.event_type + ',' + event.src_path + ',' + event.dest_path+','+str(event.is_directory))
 
     def on_modified(self, event):
         if (event.is_directory):
             return
 
-        self.modify_queue.append(event.event_type + ',' + event.src_path)
+        self._modify_queue.append(event.event_type + ',' + event.src_path)
 
     def on_deleted(self, event):
-        self.modify_queue.append(event.event_type + ',' + event.src_path)
+        self._modify_queue.append(event.event_type + ',' + event.src_path+','+str(event.is_directory))
 
     def on_created(self, event):
-        self.modify_queue.append(event.event_type + ',' + event.src_path)
+        self._modify_queue.append(event.event_type + ',' + event.src_path+','+str(event.is_directory))
+
+    def get_modify_queue(self):
+        return self._modify_queue
+
 
 if __name__ == "__main__":
     path = ".."
