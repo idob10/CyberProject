@@ -69,14 +69,17 @@ class DirectoryApplayer:
         
     def sendDir(self,dirName):
         listOfFiles = []
+        listOfDirs = []
         for (dirpath, dirnames, filenames) in os.walk(dirName):
-            listOfFiles += ([os.path.join(dirpath,dirname)+",True" for dirname in dirnames])
-            listOfFiles += [os.path.join(dirpath, file)+",False" for file in filenames]
+            listOfDirs += ([os.path.join(dirpath,dirname) for dirname in dirnames])
+            listOfFiles += [os.path.join(dirpath, file) for file in filenames]
         
         for filePath in listOfFiles:
-            self._sock.send(("created"+filePath).encode())
+            self._sock.send(("created"+filePath+",False").encode())
+            sendFile(filePath,self._sock)
 
-
+        for filePath in listOfDirs:
+            self._sock.send(("created"+filePath+",True").encode())
 
 def sendFile(filePath, sock):
     try:

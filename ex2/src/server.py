@@ -27,10 +27,12 @@ def handleClient(clientSock,clientAddr):
         clientList[id]={clientAddr:[]}
     else:
         id = msg
+        d = utils.DirectoryApplayer(id,clientSock)
         #new client, need to download
         try:
             if (clientAddr not in clientList[id]):
                 clientList[id].append({clientAddr:[]})
+                d.sendDir(f'./{id}')  
         except:
             sendMsg(clientSock,'Client does not exsist in the system')
 
