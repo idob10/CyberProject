@@ -9,11 +9,11 @@ clientList = {}
 NEW_CLIENT_MASSAGE = "new client"
 CLOSE_CONNECTION = "close connection"
 
-def id_generator():
+def id_generator(length):
     chars = string.ascii_uppercase + string.ascii_lowercase + string.digits
-    id = ''.join(random.choice(chars) for _ in range(128))
+    id = ''.join(random.choice(chars) for _ in range(length))
     while id == NEW_CLIENT_MASSAGE:
-        id = ''.join(random.choice(chars) for _ in range(128))
+        id = ''.join(random.choice(chars) for _ in range(length))
 
     return id
 
@@ -30,24 +30,21 @@ def handleClient(clientSock,clientAddr):
     msg = getMsg(clientSock)
     print(msg)
     if (msg==NEW_CLIENT_MASSAGE):
-        id = id_generator()
+        id = id_generator(128)
+        clientId = id_generator(10)
         print (id)
-        sendMsg(clientSock, id)
+        sendMsg(clientSock, id+","+clientId)
         d = utils.DirectoryApplayer(id,clientSock)
         d.createFile(f'./serverFiles/{id}',"True")
         clientList[id]={clientAddr:[]}
     else:
-        id = msg
+        id,clientId = msg.split(',',1)
         d = utils.DirectoryApplayer(id,clientSock)
         #new client, need to download
-        try:
-            if (clientAddr not in clientList[id]):
-                clientList[id].append({clientAddr:[]})
+        if (clientId not in clientList[id]):
+                clientList[id].append({clientId:[]})
                 d.sendDir(f'./serverFiles/{id}')
                 sendMsg(clientSock, utils.PROTOCOL_END_OF_MODIFICATION)
-        except:
-            sendMsg(clientSock,'Client does not exsist in the system')
-
     handleCommands(clientSock,clientAddr,id)
 
 def handleCommands(sock,clientAddr,id):
