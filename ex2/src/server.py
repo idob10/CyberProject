@@ -34,7 +34,7 @@ def handleClient(clientSock,clientAddr):
         print (id)
         sendMsg(clientSock, id)
         d = utils.DirectoryApplayer(id,clientSock)
-        d.createFile(f'./serverFiles/{id}',True)
+        d.createFile(f'./serverFiles/{id}',"True")
         clientList[id]={clientAddr:[]}
     else:
         id = msg
