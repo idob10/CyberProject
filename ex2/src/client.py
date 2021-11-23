@@ -1,6 +1,7 @@
 import socket
 import time
 import utils
+import os
 from server import NEW_CLIENT_MASSAGE
 from server import CLOSE_CONNECTION
 from server import sendMsg
@@ -19,7 +20,6 @@ def connect(sock, path, isNewClient, directoryApplayer):
 
 def updateServer(sock, id, directoryApplayer, modify_queue):
     sendMsg(sock, id)
-    id = getMsg(sock)
 
     msg = getMsg(sock)
     while msg != utils.PROTOCOL_END_OF_MODIFICATION:
@@ -30,6 +30,8 @@ def updateServer(sock, id, directoryApplayer, modify_queue):
         command = modify_queue.pop(0)
         sendMsg(sock, command)
 
+        if command.split(',')[0] == "created":
+            utils.sendFile(command.split(',')[1],sock)
 
 def main():
     ip = '127.0.0.1'
@@ -51,7 +53,9 @@ def main():
         sendMsg(sock, id)
 
     id = getMsg(sock)
+    sock.recv(1024) #getting ack
     connect(sock, path, isNewClient, directoryApplayer)
+    sendMsg(sock, CLOSE_CONNECTION)
 
     #start observing
     modify_queue = []
