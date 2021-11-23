@@ -43,14 +43,14 @@ class DirectoryApplayer:
         self._sock = sock
 
     def delete(self, path):
-        os.remove(self._folder_path + '\\' + path)
+        os.remove(os.path.join(self._folder_path,path))
 
     def moveRename(self, paths):
-        srcPath,dstPath = paths.split('\n', 1)
-        os.rename(self._folder_path + '\\' + srcPath, self._folder_path + '\\' + dstPath)
+        srcPath,dstPath = paths.split(',', 1)
+        os.rename(os.path.join(self._folder_path,srcPath), os.path.join(self._folder_path,dstPath))
 
     def copy_file(self, filePath):
-        with open(self._folder_path + '\\' + filePath,'wb') as f:
+        with open(os.path.join(self._folder_path,filePath),'wb') as f:
             data = self._sock.recv(1024)
             print("recv:" + data.decode())
             while data.decode() != PROTOCOL_END_OF_FILE:
@@ -66,7 +66,7 @@ class DirectoryApplayer:
         if isDir == "False":
             self.copy_file(filePath)
         else:
-            os.makedirs(self._folder_path + "\\" + filePath, exist_ok=True)
+            os.makedirs(os.path.join(self._folder_path,filePath), exist_ok=True)
 
     def handleNewModify(self, command):
         command = command.split(',',3)
