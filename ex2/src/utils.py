@@ -4,6 +4,8 @@ import sys
 import time
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
+from server import sendMsg
+from server import getMsg
 
 # protocol constant
 PROTOCOL_ACK = "ACK"
@@ -54,9 +56,10 @@ class DirectoryApplayer:
             f.close()
 
     def createFile(self, filePath,isDir):
-        os.makedirs(filePath,exist_ok=True)
-        if (not bool(isDir)):
+        if isDir == "False":
             self.copy_file(filePath)
+        else:
+            os.makedirs(filePath, exist_ok=True)
 
     def handleNewModify(self, command):
         command = command.split(',',3)
@@ -71,16 +74,15 @@ class DirectoryApplayer:
         listOfFiles = []
         listOfDirs = []
         for (dirpath, dirnames, filenames) in os.walk(dirName):
-            listOfDirs += ([os.path.join(dirpath,dirname) for dirname in dirnames])
-            listOfFiles += [os.path.join(dirpath, file) for file in filenames]
+            listOfDirs += ([dirname for dirname in dirnames])
+            listOfFiles += [file for file in filenames]
         
         for filePath in listOfFiles:
-            self._sock.send(("created"+filePath+",False").encode())
-            self._sock.recv()
+            sendMsg(self._sock, "created,"+filePath+",False")
             sendFile(filePath,self._sock)
 
         for filePath in listOfDirs:
-            self._sock.send(("created"+filePath+",True").encode())
+            self._sock.send(("created,"+filePath+",True").encode())
 
 def sendFile(filePath, sock):
     try:
