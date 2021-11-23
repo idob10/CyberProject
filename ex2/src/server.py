@@ -51,6 +51,8 @@ def handleCommands(sock,clientAddr,id):
     d = utils.DirectoryApplayer(f'./serverFiles/{id}',sock)
     while (True): #need to reconect?
         cmd = getMsg(sock)
+        if (cmd==CLOSE_CONNECTION):
+            break
         d.handleNewModify(cmd)
         for key,value in clientList[id].items():
             if key!=clientAddr:
