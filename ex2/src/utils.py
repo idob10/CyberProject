@@ -67,11 +67,14 @@ class DirectoryApplayer:
         elif (command[0]=="deleted"):
             self.delete(command[1])
         
-    def downloadDir(self,dirName):
+    def sendDir(self,dirName):
         listOfFiles = []
         for (dirpath, dirnames, filenames) in os.walk(dirName):
-            listOfFiles += [os.path.join(dirpath, file) for file in filenames]
-        return listOfFiles
+            listOfFiles += ([os.path.join(dirpath,dirname)+",True" for dirname in dirnames])
+            listOfFiles += [os.path.join(dirpath, file)+",False" for file in filenames]
+        
+        for filePath in listOfFiles:
+            self._sock.send(("created"+filePath).encode())
 
 
 
