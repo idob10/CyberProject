@@ -39,6 +39,9 @@ class DirectoryApplayer:
         self._folder_path = folder_path
         self._sock = sock
 
+    def set_sock(self, sock):
+        self._sock = sock
+
     def delete(self, path):
         os.remove(self._folder_path + '\\' + path)
 

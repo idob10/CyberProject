@@ -18,13 +18,12 @@ def connect(sock, path, isNewClient, directoryApplayer):
     directoryApplayer.sendDir(path)
 
 
-def updateServer(sock, id, directoryApplayer, modify_queue):
-    sendMsg(sock, id)
-
+def updateServer(sock, directoryApplayer, modify_queue):
     msg = getMsg(sock)
     while msg != utils.PROTOCOL_END_OF_MODIFICATION:
         directoryApplayer.handleNewModify(msg)
 
+    sock.recv(1024) #recive ack
     # upload the changes
     while len(modify_queue) != 0:
         command = modify_queue.pop(0)
@@ -56,6 +55,7 @@ def main():
     sock.recv(1024) #getting ack
     connect(sock, path, isNewClient, directoryApplayer)
     sendMsg(sock, CLOSE_CONNECTION)
+    sock.close()
 
     #start observing
     modify_queue = []
@@ -64,8 +64,15 @@ def main():
     observer.schedule(directoryObserver, path, recursive=True)
     observer.start()
     while True:
-        updateServer(sock, id, directoryApplayer, modify_queue)
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.connect((ip, port))
+        directoryApplayer.set_sock(sock)
+        sendMsg(sock, id)
+        id = getMsg(sock)
+
+        updateServer(sock, directoryApplayer, modify_queue)
         sendMsg(sock, CLOSE_CONNECTION)
+        sock.close()
         time.sleep(timeout)
 
 

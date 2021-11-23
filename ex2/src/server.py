@@ -43,8 +43,15 @@ def handleClient(clientSock):
         d.createFile("","True")
         clientList[id]={clientId:[]}
     else:
-        id,clientId = msg.split(',',1)
-        sendMsg(clientSock, id)
+        id = ""
+        clientId = ""
+        if ',' in msg:
+            id,clientId = msg.split(',',1)
+        else:
+            id = msg
+            clientId = id_generator(10)
+
+        sendMsg(clientSock, id+","+clientId)
         d = utils.DirectoryApplayer(id,clientSock)
         #new client, need to download
         if (clientId not in clientList[id]):
@@ -58,6 +65,9 @@ def handleClient(clientSock):
                 sendMsg(clientSock, command)
                 if command.split(',')[0] == "created":
                     utils.sendFile(command.split(',')[1], clientSock)
+
+            sendMsg(clientSock, utils.PROTOCOL_END_OF_MODIFICATION)
+            clientSock.send(utils.PROTOCOL_ACK.encode())
 
     handleCommands(clientSock,clientId,id)
 
