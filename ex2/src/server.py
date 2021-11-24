@@ -33,6 +33,9 @@ def getMsg(sock):
 def handleClient(clientSock):
     msg = getMsg(clientSock)
     print(msg)
+
+    id = ""
+    clientId = ""
     if (msg==NEW_CLIENT_MASSAGE):
         id = id_generator(128)
         clientId = id_generator(10)
@@ -43,8 +46,6 @@ def handleClient(clientSock):
         d.createFile("","True")
         clientList[id]={clientId:[]}
     else:
-        id = ""
-        clientId = ""
         if ',' in msg:
             id,clientId = msg.split(',',1)
         else:
@@ -59,7 +60,7 @@ def handleClient(clientSock):
                 d.sendDir(f'./serverFiles/{id}')
                 sendMsg(clientSock, utils.PROTOCOL_END_OF_MODIFICATION)
         else:
-                # upload the changes
+            # upload the changes
             while len(clientList[id][clientId]) != 0:
                 command = clientList[id][clientId].pop(0)
                 sendMsg(clientSock, command)

@@ -13,23 +13,26 @@ PROTOCOL_END_OF_FILE ="DONE"
 PROTOCOL_END_OF_MODIFICATION = "FINISH"
 
 class DirectoryObserver(FileSystemEventHandler):
-    def __init__(self, modify_queue):
+    def __init__(self, modify_queue, filePath):
         self._modify_queue = modify_queue
+        self._filePath = filePath
 
     def on_moved(self, event):
-        self._modify_queue.append(event.event_type + ',' + event.src_path + ',' + event.dest_path+','+event.is_directory)
+        self._modify_queue.append(event.event_type + ',' + event.src_path[len(self._filePath) : ]
+                                  + ',' + event.dest_path[len(self._filePath) + 1 : ]+','+event.is_directory)
 
     def on_modified(self, event):
         if (event.is_directory):
             return
 
-        self._modify_queue.append(event.event_type + ',' + event.src_path)
+        self._modify_queue.append(event.event_type + ',' + event.src_path[len(self._filePath) + 1 : ])
 
     def on_deleted(self, event):
-        self._modify_queue.append(event.event_type + ',' + event.src_path+','+event.is_directory)
+        self._modify_queue.append(event.event_type + ',' + event.src_path[len(self._filePath) + 1 : ] +','+event.is_directory)
 
     def on_created(self, event):
-        self._modify_queue.append(event.event_type + ',' + event.src_path+','+str(event.is_directory))
+        self._modify_queue.append(event.event_type + ',' + event.src_path[len(self._filePath) + 1 : ]
+                                  + ',' + str(event.is_directory))
 
     def get_modify_queue(self):
         return self._modify_queue
@@ -50,7 +53,7 @@ class DirectoryApplayer:
         os.rename(os.path.join(self._folder_path,srcPath), os.path.join(self._folder_path,dstPath))
 
     def copy_file(self, filePath):
-        with open(os.path.join(self._folder_path,filePath),'wb') as f:
+        with open(os.path.join(self._folder_path, filePath),'wb') as f:
             data = self._sock.recv(1024)
             print("recv:" + data.decode())
             while data.decode() != PROTOCOL_END_OF_FILE:

@@ -18,7 +18,7 @@ def connect(sock, path, isNewClient, directoryApplayer):
     directoryApplayer.sendDir(path)
 
 
-def updateServer(sock, directoryApplayer, modify_queue):
+def updateServer(sock, directoryApplayer, modify_queue, path):
     msg = getMsg(sock)
     while msg != utils.PROTOCOL_END_OF_MODIFICATION:
         directoryApplayer.handleNewModify(msg)
@@ -30,7 +30,7 @@ def updateServer(sock, directoryApplayer, modify_queue):
         sendMsg(sock, command)
 
         if command.split(',')[0] == "created":
-            utils.sendFile(command.split(',')[1],sock)
+            utils.sendFile(os.path.join(path,command.split(',')[1]),sock)
 
 def main():
     ip = '127.0.0.1'
@@ -59,7 +59,7 @@ def main():
 
     #start observing
     modify_queue = []
-    directoryObserver = utils.DirectoryObserver(modify_queue)
+    directoryObserver = utils.DirectoryObserver(modify_queue, path)
     observer = Observer()
     observer.schedule(directoryObserver, path, recursive=True)
     observer.start()
@@ -70,7 +70,7 @@ def main():
         sendMsg(sock, id)
         id = getMsg(sock)
 
-        updateServer(sock, directoryApplayer, modify_queue)
+        updateServer(sock, directoryApplayer, modify_queue, path)
         sendMsg(sock, CLOSE_CONNECTION)
         sock.close()
         time.sleep(timeout)
