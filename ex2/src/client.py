@@ -34,7 +34,7 @@ def updateServer(sock, directoryApplayer, modify_queue, path):
             # check if it is a folder
             if command.split(',')[2] == "True":
                 sendMsg(sock, command)
-                directoryApplayer.sendDir(path)
+                directoryApplayer.sendDir(os.path.join(path, command.split(',')[1]))
             elif command.split(',')[1][-1] == '~':
                 duplicate = ""
                 while not duplicate.split(',')[0] == "deleted":
