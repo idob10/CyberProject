@@ -3,7 +3,7 @@ import string
 import random
 import utils
 import time
-
+import os
 clientList = {}
 
 # protocol constant
@@ -41,6 +41,7 @@ def handleClient(clientSock):
         id = id_generator(128)
         clientId = id_generator(10)
         print (id)
+        time.sleep(0.1)
         sendMsg(clientSock, id+","+clientId)
         clientSock.send(utils.PROTOCOL_ACK.encode())
         d = utils.DirectoryApplayer(f'./serverFiles/{id}',clientSock)
@@ -52,21 +53,22 @@ def handleClient(clientSock):
         else:
             id = msg
             clientId = id_generator(10)
-        time.sleep(0.1)
+        time.sleep(0.3)
         sendMsg(clientSock, id+","+clientId)
-        d = utils.DirectoryApplayer(id,clientSock)
+        d = utils.DirectoryApplayer(f'./serverFiles/{id}',clientSock)
         #new client, need to download
         if (clientId not in clientList[id]):
-                clientList[id].append({clientId:[]})
-                d.sendDir(f'./serverFiles/{id}')
-                sendMsg(clientSock, utils.PROTOCOL_END_OF_MODIFICATION)
+            clientList[id][clientId]=[]
+            d.sendDir(f'./serverFiles/{id}')
+            sendMsg(clientSock, utils.PROTOCOL_END_OF_MODIFICATION)
+            clientSock.send(utils.PROTOCOL_ACK.encode())
         else:
             # upload the changes
             while len(clientList[id][clientId]) != 0:
                 command = clientList[id][clientId].pop(0)
                 sendMsg(clientSock, command)
                 if command.split(',')[0] == "created":
-                    utils.sendFile(command.split(',')[1], clientSock)
+                    utils.sendFile(os.path.join(f'./serverFiles/{id}',command.split(',')[1]), clientSock)
 
             sendMsg(clientSock, utils.PROTOCOL_END_OF_MODIFICATION)
             clientSock.send(utils.PROTOCOL_ACK.encode())

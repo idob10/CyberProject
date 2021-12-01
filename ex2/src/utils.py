@@ -44,16 +44,10 @@ class DirectoryApplayer:
     def set_sock(self, sock):
         self._sock = sock
 
-    def delete(self, path, isDir):
-        if isDir == "False":
+    def delete(self, path):
+        if not os.path.isdir(os.path.join(self._folder_path,path)):
             os.remove(os.path.join(self._folder_path,path))
         else:
-            # for (dirpath, dirnames, filenames) in os.walk(path):
-            #     for fileName in filenames:
-            #         os.remove(os.path.join(self._folder_path, fileName))
-            #     for dir in dirnames:
-            #         os.rmdir(os.path.join(self._folder_path, dir))
-
             os.rmdir(os.path.join(self._folder_path,path))
 
     def moveRename(self, srcPath,dstPath):
@@ -85,14 +79,20 @@ class DirectoryApplayer:
         elif (command[0] == "moved"):
             self.moveRename(command[1], command[2])
         elif (command[0]=="deleted"):
-            self.delete(command[1],command[2])
+            self.delete(command[1])
         
     def sendDir(self,dirName):
         listOfFiles = []
         listOfDirs = []
         for (dirpath, dirnames, filenames) in os.walk(dirName):
-            listOfDirs += ([os.path.join(os.path.relpath(dirpath,self._folder_path),dirname) for dirname in dirnames])
-            listOfFiles += [os.path.join(os.path.relpath(dirpath,self._folder_path),file) for file in filenames]
+            if dirpath == self._folder_path:
+                listOfDirs+=dirnames
+            else:
+                listOfDirs += ([os.path.join(os.path.relpath(dirpath,self._folder_path),dirname) for dirname in dirnames])
+            if dirpath == self._folder_path:
+                listOfFiles += filenames
+            else:
+                listOfFiles += [os.path.join(os.path.relpath(dirpath,self._folder_path),file) for file in filenames]
 
         for filePath in listOfDirs:
             sendMsg(self._sock, "created,"+filePath+",True")
