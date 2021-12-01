@@ -18,17 +18,16 @@ class DirectoryObserver(FileSystemEventHandler):
         self._filePath = filePath
 
     def on_moved(self, event):
-        self._modify_queue.append(event.event_type + ',' + event.src_path[len(self._filePath) : ]
-                                  + ',' + event.dest_path[len(self._filePath) + 1 : ]+','+event.is_directory)
+        self._modify_queue.append(event.event_type + ',' + event.src_path[len(self._filePath) + 1 : ]
+                                  + ',' + event.dest_path[len(self._filePath) + 1 : ]+','+str(event.is_directory)   )
 
     def on_modified(self, event):
         if (event.is_directory):
             return
-
         self._modify_queue.append(event.event_type + ',' + event.src_path[len(self._filePath) + 1 : ])
 
     def on_deleted(self, event):
-        self._modify_queue.append(event.event_type + ',' + event.src_path[len(self._filePath) + 1 : ] +','+event.is_directory)
+        self._modify_queue.append(event.event_type + ',' + event.src_path[len(self._filePath) + 1 : ] +','+str(event.is_directory))
 
     def on_created(self, event):
         self._modify_queue.append(event.event_type + ',' + event.src_path[len(self._filePath) + 1 : ]
@@ -45,11 +44,19 @@ class DirectoryApplayer:
     def set_sock(self, sock):
         self._sock = sock
 
-    def delete(self, path):
-        os.remove(os.path.join(self._folder_path,path))
+    def delete(self, path, isDir):
+        if isDir == "False":
+            os.remove(os.path.join(self._folder_path,path))
+        else:
+            # for (dirpath, dirnames, filenames) in os.walk(path):
+            #     for fileName in filenames:
+            #         os.remove(os.path.join(self._folder_path, fileName))
+            #     for dir in dirnames:
+            #         os.rmdir(os.path.join(self._folder_path, dir))
 
-    def moveRename(self, paths):
-        srcPath,dstPath = paths.split(',', 1)
+            os.rmdir(os.path.join(self._folder_path,path))
+
+    def moveRename(self, srcPath,dstPath):
         os.rename(os.path.join(self._folder_path,srcPath), os.path.join(self._folder_path,dstPath))
 
     def copy_file(self, filePath):
@@ -76,33 +83,31 @@ class DirectoryApplayer:
         if (command[0] == "created"):
             self.createFile(command[1],command[2])
         elif (command[0] == "moved"):
-            self.moveRename(command[1])
+            self.moveRename(command[1], command[2])
         elif (command[0]=="deleted"):
-            self.delete(command[1])
+            self.delete(command[1],command[2])
         
     def sendDir(self,dirName):
         listOfFiles = []
         listOfDirs = []
         for (dirpath, dirnames, filenames) in os.walk(dirName):
-            listOfDirs += ([dirname for dirname in dirnames])
-            listOfFiles += [file for file in filenames]
-        
-        for filePath in listOfFiles:
-            sendMsg(self._sock, "created,"+filePath+",False")
-            sendFile(os.path.join(dirName,filePath),self._sock)
+            listOfDirs += ([os.path.join(os.path.relpath(dirpath,self._folder_path),dirname) for dirname in dirnames])
+            listOfFiles += [os.path.join(os.path.relpath(dirpath,self._folder_path),file) for file in filenames]
 
         for filePath in listOfDirs:
             sendMsg(self._sock, "created,"+filePath+",True")
 
-def sendFile(filePath, sock):
-    try:
-        with open(filePath, 'r') as f:
-            data = f.read(1024)
-            while len(data) != 0:
-                sendMsg(sock, data)
-                data = f.read(1024)
+        for filePath in listOfFiles:
+            sendMsg(self._sock, "created,"+filePath+",False")
+            sendFile(os.path.join(self._folder_path ,filePath),self._sock)
 
-            sendMsg(sock, PROTOCOL_END_OF_FILE)
-            f.close()
-    except Exception:
+
+def sendFile(filePath, sock):
+    with open(filePath, 'r') as f:
+        data = f.read(1024)
+        while len(data) != 0:
+            sendMsg(sock, data)
+            data = f.read(1024)
+
         sendMsg(sock, PROTOCOL_END_OF_FILE)
+        f.close()

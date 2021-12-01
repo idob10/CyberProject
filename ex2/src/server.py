@@ -2,6 +2,7 @@ import socket
 import string
 import random
 import utils
+import time
 
 clientList = {}
 
@@ -51,7 +52,7 @@ def handleClient(clientSock):
         else:
             id = msg
             clientId = id_generator(10)
-
+        time.sleep(0.1)
         sendMsg(clientSock, id+","+clientId)
         d = utils.DirectoryApplayer(id,clientSock)
         #new client, need to download

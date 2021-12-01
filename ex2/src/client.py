@@ -27,10 +27,24 @@ def updateServer(sock, directoryApplayer, modify_queue, path):
     # upload the changes
     while len(modify_queue) != 0:
         command = modify_queue.pop(0)
-        sendMsg(sock, command)
 
         if command.split(',')[0] == "created":
-            utils.sendFile(os.path.join(path,command.split(',')[1]),sock)
+            # check if it is a folder
+            if command.split(',')[2] == "True":
+                sendMsg(sock, command)
+                directoryApplayer.sendDir(path)
+            elif command.split(',')[1][-1] == '~':
+                duplicate = ""
+                while not duplicate.split(',')[0] == "deleted":
+                    duplicate = modify_queue.pop(0)
+                create, filePath, isDir = command.split(',')
+                sendMsg(sock, create + ',' + filePath[0 : -1] + ',' +  isDir)
+                utils.sendFile(os.path.join(path,filePath[0 : -1]),sock)
+            else:
+                sendMsg(sock, command)
+                utils.sendFile(os.path.join(path,command.split(',')[1]),sock)
+        else:
+            sendMsg(sock, command)
 
 def main():
     ip = '127.0.0.1'
@@ -64,6 +78,7 @@ def main():
     observer.schedule(directoryObserver, path, recursive=True)
     observer.start()
     while True:
+
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.connect((ip, port))
         directoryApplayer.set_sock(sock)
