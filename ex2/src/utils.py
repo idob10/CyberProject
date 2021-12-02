@@ -11,6 +11,7 @@ from server import getMsg
 PROTOCOL_ACK = "ACK"
 PROTOCOL_END_OF_FILE ="DONE"
 PROTOCOL_END_OF_MODIFICATION = "FINISH"
+PAUSED = False
 
 class DirectoryObserver(FileSystemEventHandler):
     def __init__(self, modify_queue, filePath):
@@ -18,23 +19,39 @@ class DirectoryObserver(FileSystemEventHandler):
         self._filePath = filePath
 
     def on_moved(self, event):
+        if PAUSED == True:
+            return
         self._modify_queue.append(event.event_type + ',' + event.src_path[len(self._filePath) + 1 : ]
                                   + ',' + event.dest_path[len(self._filePath) + 1 : ]+','+str(event.is_directory)   )
 
     def on_modified(self, event):
+        if PAUSED == True:
+            return
         if (event.is_directory):
             return
         self._modify_queue.append(event.event_type + ',' + event.src_path[len(self._filePath) + 1 : ])
 
     def on_deleted(self, event):
+        if PAUSED == True:
+            return
         self._modify_queue.append(event.event_type + ',' + event.src_path[len(self._filePath) + 1 : ] +','+str(event.is_directory))
 
     def on_created(self, event):
+        if PAUSED == True:
+            return
         self._modify_queue.append(event.event_type + ',' + event.src_path[len(self._filePath) + 1 : ]
                                   + ',' + str(event.is_directory))
 
     def get_modify_queue(self):
         return self._modify_queue
+    
+    def pause(self):
+        global PAUSED
+        PAUSED = True
+
+    def resume(self):
+        global PAUSED
+        PAUSED = False
 
 class DirectoryApplayer:
     def __init__(self, folder_path, sock):
