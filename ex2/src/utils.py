@@ -45,10 +45,10 @@ class DirectoryApplayer:
         self._sock = sock
 
     def delete(self, path):
-        if not os.path.isdir(os.path.join(self._folder_path,path)):
-            os.remove(os.path.join(self._folder_path,path))
-        else:
+        if os.path.isdir(os.path.join(self._folder_path,path)):
             os.rmdir(os.path.join(self._folder_path,path))
+        else:
+            os.remove(os.path.join(self._folder_path,path))
 
     def moveRename(self, srcPath,dstPath):
         os.rename(os.path.join(self._folder_path,srcPath), os.path.join(self._folder_path,dstPath))

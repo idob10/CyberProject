@@ -53,7 +53,7 @@ def handleClient(clientSock):
         else:
             id = msg
             clientId = id_generator(10)
-        time.sleep(0.3)
+        time.sleep(0.5)
         sendMsg(clientSock, id+","+clientId)
         d = utils.DirectoryApplayer(f'./serverFiles/{id}',clientSock)
         #new client, need to download
@@ -68,7 +68,11 @@ def handleClient(clientSock):
                 command = clientList[id][clientId].pop(0)
                 sendMsg(clientSock, command)
                 if command.split(',')[0] == "created":
-                    utils.sendFile(os.path.join(f'./serverFiles/{id}',command.split(',')[1]), clientSock)
+                    # chek if it a folder
+                    if command.split(',')[2] == "True":
+                        d.sendDir(os.path.join(f'./serverFiles/{id}', command.split(',')[1]))
+                    else:
+                        utils.sendFile(os.path.join(f'./serverFiles/{id}',command.split(',')[1]), clientSock)
 
             sendMsg(clientSock, utils.PROTOCOL_END_OF_MODIFICATION)
             clientSock.send(utils.PROTOCOL_ACK.encode())
