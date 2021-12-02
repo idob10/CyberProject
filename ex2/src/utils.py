@@ -29,7 +29,8 @@ class DirectoryObserver(FileSystemEventHandler):
             return
         if (event.is_directory):
             return
-        self._modify_queue.append(event.event_type + ',' + event.src_path[len(self._filePath) + 1 : ])
+        self._modify_queue.append("deleted" + ',' + event.src_path[len(self._filePath) + 1 : ] + ',' + "False")
+        self._modify_queue.append("created" + ',' + event.src_path[len(self._filePath) + 1 : ]+',' + "False")
 
     def on_deleted(self, event):
         if PAUSED == True:
