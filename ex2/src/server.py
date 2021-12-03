@@ -24,6 +24,12 @@ def sendMsg(sock,msg):
     r = sock.recv(1024)
     print("recv:" + r.decode())
 
+def sendBytesMsg(sock,msg):
+    sock.send(msg)
+    print("sent bytes")
+    r = sock.recv(1024)
+    print("recv:" + r.decode())
+
 def getMsg(sock):
     msg = sock.recv(1024).decode()
     print("recv:" + msg)

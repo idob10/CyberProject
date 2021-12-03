@@ -4,7 +4,7 @@ import sys
 import time
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
-from server import sendMsg
+from server import sendBytesMsg, sendMsg
 from server import getMsg
 
 # protocol constant
@@ -74,15 +74,24 @@ class DirectoryApplayer:
     def copy_file(self, filePath):
         with open(os.path.join(self._folder_path, filePath),'wb') as f:
             data = self._sock.recv(1024)
-            print("recv:" + data.decode())
-            while data.decode() != PROTOCOL_END_OF_FILE:
-                f.write(data)
-                self._sock.send(PROTOCOL_ACK.encode())
-                print("send:" + PROTOCOL_ACK)
-                data = self._sock.recv(1024)
+            print("recv bytes")
+            while True:
+                try:
+                    if data.decode() == PROTOCOL_END_OF_FILE:
+                        break
+                    self.writeSliceData(data,f)
+                    data = self._sock.recv(1024)
+                except:
+                    self.writeSliceData(data,f)
+                    data = self._sock.recv(1024)
 
             self._sock.send(PROTOCOL_ACK.encode())
             f.close()
+    
+    def writeSliceData(self,data,f):
+        f.write(data)
+        self._sock.send(PROTOCOL_ACK.encode())
+        print("send:" + PROTOCOL_ACK)
 
     def createFile(self, filePath,isDir):
         if isDir == "False":
@@ -121,10 +130,10 @@ class DirectoryApplayer:
 
 
 def sendFile(filePath, sock):
-    with open(filePath, 'r') as f:
+    with open(filePath, 'rb') as f:
         data = f.read(1024)
         while len(data) != 0:
-            sendMsg(sock, data)
+            sendBytesMsg(sock, data)
             data = f.read(1024)
 
         sendMsg(sock, PROTOCOL_END_OF_FILE)
