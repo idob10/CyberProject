@@ -17,9 +17,6 @@ def connect(sock, path, isNewClient, directoryApplayer):
             directoryApplayer.handleNewModify(msg)
             msg = getMsg(sock)
 
-    # upload the dir
-    directoryApplayer.sendDir(path)
-
 
 def updateServer(sock, directoryApplayer, observer, modify_queue, path):
     # download the new changes
