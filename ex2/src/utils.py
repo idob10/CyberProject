@@ -1,11 +1,6 @@
 import os
-import socket
-import sys
-import time
-from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 from server import sendBytesMsg, sendMsg
-from server import getMsg
 
 # protocol constant
 PROTOCOL_ACK = "ACK"
@@ -21,6 +16,7 @@ class DirectoryObserver(FileSystemEventHandler):
     def on_moved(self, event):
         if PAUSED == True:
             return
+        # saving the massage
         self._modify_queue.append(event.event_type + ',' + event.src_path[len(self._filePath) + 1 : ]
                                   + ',' + event.dest_path[len(self._filePath) + 1 : ]+','+str(event.is_directory)   )
 
@@ -29,17 +25,20 @@ class DirectoryObserver(FileSystemEventHandler):
             return
         if (event.is_directory):
             return
+        # saving the massage
         self._modify_queue.append("deleted" + ',' + event.src_path[len(self._filePath) + 1 : ] + ',' + "False")
         self._modify_queue.append("created" + ',' + event.src_path[len(self._filePath) + 1 : ]+',' + "False")
 
     def on_deleted(self, event):
         if PAUSED == True:
             return
+        # saving the massage
         self._modify_queue.append(event.event_type + ',' + event.src_path[len(self._filePath) + 1 : ] +','+str(event.is_directory))
 
     def on_created(self, event):
         if PAUSED == True:
             return
+        # saving the massage
         self._modify_queue.append(event.event_type + ',' + event.src_path[len(self._filePath) + 1 : ]
                                   + ',' + str(event.is_directory))
 
@@ -54,6 +53,7 @@ class DirectoryObserver(FileSystemEventHandler):
         global PAUSED
         PAUSED = False
 
+# updating a folder
 class DirectoryApplayer:
     def __init__(self, folder_path, sock):
         self._folder_path = folder_path
@@ -63,6 +63,7 @@ class DirectoryApplayer:
         self._sock = sock
 
     def delete(self, path):
+        # cecking if it a folder
         if os.path.isdir(os.path.join(self._folder_path,path)):
             os.rmdir(os.path.join(self._folder_path,path))
         else:
@@ -75,8 +76,11 @@ class DirectoryApplayer:
         with open(os.path.join(self._folder_path, filePath),'wb') as f:
             data = self._sock.recv(1024)
             print("recv bytes")
+
+            # getting the data from the socket
             while True:
                 try:
+                    # check if it the end of file
                     if data.decode() == PROTOCOL_END_OF_FILE:
                         break
                     self.writeSliceData(data,f)
@@ -100,6 +104,7 @@ class DirectoryApplayer:
             os.makedirs(os.path.join(self._folder_path,filePath), exist_ok=True)
 
     def handleNewModify(self, command):
+        # handle a modification to a folder
         command = command.split(',',3)
         if (command[0] == "created"):
             self.createFile(command[1],command[2])
@@ -111,6 +116,7 @@ class DirectoryApplayer:
     def sendDir(self,dirName):
         listOfFiles = []
         listOfDirs = []
+        # going throw the folder and saving all the files and folders in a list
         for (dirpath, dirnames, filenames) in os.walk(dirName):
             if dirpath == self._folder_path:
                 listOfDirs+=dirnames
@@ -121,6 +127,7 @@ class DirectoryApplayer:
             else:
                 listOfFiles += [os.path.join(os.path.relpath(dirpath,self._folder_path),file) for file in filenames]
 
+        # sending the files and folders
         for filePath in listOfDirs:
             sendMsg(self._sock, "created,"+filePath+",True")
 

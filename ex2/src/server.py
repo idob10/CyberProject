@@ -43,6 +43,8 @@ def handleClient(clientSock):
 
     id = ""
     clientId = ""
+
+    # checks the status of the client
     if (msg==NEW_CLIENT_MASSAGE):
         id = id_generator(128)
         clientId = id_generator(10)

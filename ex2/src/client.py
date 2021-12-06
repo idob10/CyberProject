@@ -10,6 +10,7 @@ from server import getMsg
 from watchdog.observers import Observer
 
 def connect(sock, path, isNewClient, directoryApplayer):
+    # download the current folder at the server
     if not isNewClient:
         msg = getMsg(sock)
         while msg != utils.PROTOCOL_END_OF_MODIFICATION:
@@ -21,6 +22,7 @@ def connect(sock, path, isNewClient, directoryApplayer):
 
 
 def updateServer(sock, directoryApplayer, observer, modify_queue, path):
+    # download the new changes
     observer.pause()
     msg = getMsg(sock)
     while msg != utils.PROTOCOL_END_OF_MODIFICATION:
@@ -41,6 +43,7 @@ def updateServer(sock, directoryApplayer, observer, modify_queue, path):
                 directoryApplayer.sendDir(os.path.join(path, command.split(',')[1]))
             elif command.split(',')[1][-1] == '~':
                 duplicate = ""
+                # getting out from the queue a duplicate massges of the watchdog
                 while not duplicate.split(',')[0] == "deleted":
                     duplicate = modify_queue.pop(0)
                 create, filePath, isDir = command.split(',')
@@ -53,6 +56,7 @@ def updateServer(sock, directoryApplayer, observer, modify_queue, path):
             sendMsg(sock, command)
 
 def main():
+    # initialize parameters
     ip = '127.0.0.1'
     port = 12345
     path = f"../test"
@@ -64,6 +68,7 @@ def main():
         if (len(args) > 1):
             id = args[1]
 
+    # creating a socket
     os.makedirs(path,exist_ok=True)
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.connect((ip, port))
@@ -91,13 +96,14 @@ def main():
     observer.schedule(directoryObserver, path, recursive=True)
     observer.start()
     while True:
-
+        # connect to the server
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.connect((ip, port))
         directoryApplayer.set_sock(sock)
         sendMsg(sock, id)
         id = getMsg(sock)
 
+        # sync with the server
         updateServer(sock, directoryApplayer, directoryObserver, modify_queue, path)
         sendMsg(sock, CLOSE_CONNECTION)
         sock.close()
