@@ -16,9 +16,11 @@ class DirectoryObserver(FileSystemEventHandler):
     def on_moved(self, event):
         if PAUSED == True:
             return
+        if event.is_directory == True and len(os.listdir(event.dest_path))!=0:
+            return
         # saving the massage
-        self._modify_queue.append(event.event_type + ',' + event.src_path[len(self._filePath) + 1 : ]
-                                  + ',' + event.dest_path[len(self._filePath) + 1 : ]+','+str(event.is_directory)   )
+        self._modify_queue.insert(0,event.event_type + ',' + event.src_path[len(self._filePath) + 1 : ]
+                                  + ',' + event.dest_path[len(self._filePath) + 1 : ]+','+str(event.is_directory))
 
     def on_modified(self, event):
         if PAUSED == True:
@@ -70,7 +72,7 @@ class DirectoryApplayer:
             os.remove(os.path.join(self._folder_path,path))
 
     def moveRename(self, srcPath,dstPath):
-        os.rename(os.path.join(self._folder_path,srcPath), os.path.join(self._folder_path,dstPath))
+        os.renames(os.path.join(self._folder_path,srcPath), os.path.join(self._folder_path,dstPath))
 
     def copy_file(self, filePath):
         with open(os.path.join(self._folder_path, filePath),'wb') as f:
