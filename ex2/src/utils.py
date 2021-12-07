@@ -16,7 +16,7 @@ class DirectoryObserver(FileSystemEventHandler):
         if event.is_directory == True and len(os.listdir(event.dest_path))!=0:
             return
         # saving the massage
-        self._modify_queue.insert(0,event.event_type + ',' + event.src_path[len(self._filePath) + 1 : ]
+        self._modify_queue.append(event.event_type + ',' + event.src_path[len(self._filePath) + 1 : ]
                                   + ',' + event.dest_path[len(self._filePath) + 1 : ]+','+str(event.is_directory))
 
     def on_modified(self, event):
@@ -43,6 +43,7 @@ class DirectoryApplayer:
     def __init__(self, folder_path, sock):
         self._folder_path = folder_path
         self._sock = sock
+        self._cmdServer = []
 
     def set_sock(self, sock):
         self._sock = sock
@@ -89,6 +90,7 @@ class DirectoryApplayer:
             os.makedirs(os.path.join(self._folder_path,filePath), exist_ok=True)
 
     def handleNewModify(self, command):
+        self._cmdServer.append(command)
         # handle a modification to a folder
         command = command.split(',',3)
         if (command[0] == "created"):
@@ -97,6 +99,12 @@ class DirectoryApplayer:
             self.moveRename(command[1], command[2])
         elif (command[0]=="deleted"):
             self.delete(command[1])
+    
+    def getCmdServer(self):
+        return self._cmdServer
+    
+    def clear(self):
+        self._cmdServer = []
         
     def sendDir(self,dirName):
         listOfFiles = []

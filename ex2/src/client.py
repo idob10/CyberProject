@@ -24,11 +24,14 @@ def updateServer(sock, directoryApplayer, observer, modify_queue, path):
     while msg != utils.PROTOCOL_END_OF_MODIFICATION:
         directoryApplayer.handleNewModify(msg)
         msg = getMsg(sock)
-
+    
     sock.recv(1024) #recive ack
+
     # upload the changes
     while len(modify_queue) != 0:
         command = modify_queue.pop(0)
+        if (command in list(directoryApplayer.getCmdServer())):
+            continue
 
         if command.split(',')[0] == "created":
             # check if it is a folder
@@ -48,6 +51,8 @@ def updateServer(sock, directoryApplayer, observer, modify_queue, path):
                 utils.sendFile(os.path.join(path,command.split(',')[1]),sock)
         else:
             sendMsg(sock, command)
+
+    directoryApplayer.clear()
 
 def main():
     # initialize parameters
