@@ -6,7 +6,6 @@ from server import sendBytesMsg, sendMsg
 PROTOCOL_ACK = "ACK"
 PROTOCOL_END_OF_FILE ="DONE"
 PROTOCOL_END_OF_MODIFICATION = "FINISH"
-PAUSED = False
 
 class DirectoryObserver(FileSystemEventHandler):
     def __init__(self, modify_queue, filePath):
@@ -14,8 +13,6 @@ class DirectoryObserver(FileSystemEventHandler):
         self._filePath = filePath
 
     def on_moved(self, event):
-        if PAUSED == True:
-            return
         if event.is_directory == True and len(os.listdir(event.dest_path))!=0:
             return
         # saving the massage
@@ -23,8 +20,6 @@ class DirectoryObserver(FileSystemEventHandler):
                                   + ',' + event.dest_path[len(self._filePath) + 1 : ]+','+str(event.is_directory))
 
     def on_modified(self, event):
-        if PAUSED == True:
-            return
         if (event.is_directory):
             return
         # saving the massage
@@ -32,28 +27,16 @@ class DirectoryObserver(FileSystemEventHandler):
         self._modify_queue.append("created" + ',' + event.src_path[len(self._filePath) + 1 : ]+',' + "False")
 
     def on_deleted(self, event):
-        if PAUSED == True:
-            return
         # saving the massage
         self._modify_queue.append(event.event_type + ',' + event.src_path[len(self._filePath) + 1 : ] +','+str(event.is_directory))
 
     def on_created(self, event):
-        if PAUSED == True:
-            return
         # saving the massage
         self._modify_queue.append(event.event_type + ',' + event.src_path[len(self._filePath) + 1 : ]
                                   + ',' + str(event.is_directory))
 
     def get_modify_queue(self):
         return self._modify_queue
-    
-    def pause(self):
-        global PAUSED
-        PAUSED = True
-
-    def resume(self):
-        global PAUSED
-        PAUSED = False
 
 # updating a folder
 class DirectoryApplayer:

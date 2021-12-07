@@ -20,13 +20,10 @@ def connect(sock, path, isNewClient, directoryApplayer):
 
 def updateServer(sock, directoryApplayer, observer, modify_queue, path):
     # download the new changes
-    observer.pause()
     msg = getMsg(sock)
     while msg != utils.PROTOCOL_END_OF_MODIFICATION:
         directoryApplayer.handleNewModify(msg)
         msg = getMsg(sock)
-
-    observer.resume()
 
     sock.recv(1024) #recive ack
     # upload the changes
