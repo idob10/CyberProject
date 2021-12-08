@@ -85,6 +85,7 @@ def main():
         id = getMsg(sock)
 
     connect(sock, path, isNewClient, directoryApplayer)
+    time.sleep(0.1)
     sendMsg(sock, CLOSE_CONNECTION)
     sock.close()
 

@@ -12,10 +12,11 @@ class DirectoryObserver(FileSystemEventHandler):
         self._modify_queue.append(event.event_type + ',' + event.src_path + ',' + event.dest_path+','+str(event.is_directory))
 
     def on_modified(self, event):
-        if (event.is_directory):
-            return
-
-        self._modify_queue.append(event.event_type + ',' + event.src_path)
+        pass
+        # if (event.is_directory):
+        #     return
+        #
+        # self._modify_queue.append(event.event_type + ',' + event.src_path)
 
     def on_deleted(self, event):
         self._modify_queue.append(event.event_type + ',' + event.src_path+','+str(event.is_directory))
@@ -28,7 +29,7 @@ class DirectoryObserver(FileSystemEventHandler):
 
 
 if __name__ == "__main__":
-    path = ".."
+    path = "../test3"
     q = []
     event_handler = DirectoryObserver(modify_queue=q)
     observer = Observer()

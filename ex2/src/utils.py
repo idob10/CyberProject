@@ -23,8 +23,8 @@ class DirectoryObserver(FileSystemEventHandler):
         if (event.is_directory):
             return
         # saving the massage
-        self._modify_queue.append("deleted" + ',' + event.src_path[len(self._filePath) + 1 : ] + ',' + "False")
-        self._modify_queue.append("created" + ',' + event.src_path[len(self._filePath) + 1 : ]+',' + "False")
+        self._modify_queue.append("modified" + ',' + event.src_path[len(self._filePath) + 1 : ] + ',' + "False")
+        # self._modify_queue.append("modified" + ',' + event.src_path[len(self._filePath) + 1 : ]+',' + "False")
 
     def on_deleted(self, event):
         # saving the massage
@@ -66,7 +66,7 @@ class DirectoryApplayer:
             # getting the data from the socket
             while True:
                 try:
-                    # check if it the end of file
+                    # check if it the end of f
                     if data.decode() == PROTOCOL_END_OF_FILE:
                         break
                     self.writeSliceData(data,f)
@@ -91,11 +91,14 @@ class DirectoryApplayer:
 
     def handleNewModify(self, command):
         self._cmdServer.append(command)
+
         # handle a modification to a folder
-        command = command.split(',',3)
+        command = command.split(',',4)
         if (command[0] == "created"):
             self.createFile(command[1],command[2])
         elif (command[0] == "moved"):
+            self._cmdServer.append("created,"+command[2]+","+command[3])
+            self._cmdServer.append("deleted,"+command[1]+","+command[3])
             self.moveRename(command[1], command[2])
         elif (command[0]=="deleted"):
             self.delete(command[1])
