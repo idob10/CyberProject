@@ -56,7 +56,7 @@ class DirectoryApplayer:
             os.remove(os.path.join(self._folder_path,path))
 
     def moveRename(self, srcPath,dstPath):
-        os.renames(os.path.join(self._folder_path,srcPath), os.path.join(self._folder_path,dstPath))
+        os.rename(os.path.join(self._folder_path,srcPath), os.path.join(self._folder_path,dstPath))
 
     def copy_file(self, filePath):
         with open(os.path.join(self._folder_path, filePath),'wb') as f:
@@ -102,7 +102,12 @@ class DirectoryApplayer:
             self.moveRename(command[1], command[2])
         elif (command[0]=="deleted"):
             self.delete(command[1])
-    
+        elif (command[0]=="modified"):
+            self.delete(command[1])
+            self.createFile(command[1],command[2])
+            self._cmdServer.append("created,"+command[1]+","+command[2])
+            self._cmdServer.append("deleted,"+command[1]+","+command[2])
+
     def getCmdServer(self):
         return self._cmdServer
     

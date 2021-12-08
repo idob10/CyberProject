@@ -75,7 +75,7 @@ def handleClient(clientSock):
             while len(clientList[id][clientId]) != 0:
                 command = clientList[id][clientId].pop(0)
                 sendMsg(clientSock, command)
-                if command.split(',')[0] == "created":
+                if command.split(',')[0] == "created" or command.split(',')[0] =="modified":
                     # chek if it a folder
                     if command.split(',')[2] == "True":
                         d.sendDir(os.path.join(f'./serverFiles/{id}', command.split(',')[1]))

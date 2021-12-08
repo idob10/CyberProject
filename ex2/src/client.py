@@ -49,6 +49,9 @@ def updateServer(sock, directoryApplayer, observer, modify_queue, path):
             else:
                 sendMsg(sock, command)
                 utils.sendFile(os.path.join(path,command.split(',')[1]),sock)
+        elif command.split(',')[0] == "modified":
+            sendMsg(sock, command)
+            utils.sendFile(os.path.join(path,command.split(',')[1]),sock)
         else:
             sendMsg(sock, command)
 
