@@ -17,14 +17,14 @@ s.bind(('', MY_PORT))
 def send(data, addr):
     if addr != ALICE_ADDR:
         s.sendto(data, ALICE_ADDR)
-        print(f'Forwarded {data} from {addr} to {ALICE_ADDR}')
+        print(file'Forwarded {data} from {addr} to {ALICE_ADDR}')
     else:
         s.sendto(data, BOB_ADDR)
-        print(f'Forwarded {data} from {addr} to {BOB_ADDR}')
+        print(file'Forwarded {data} from {addr} to {BOB_ADDR}')
 
 def delayed(data, addr):
     delay = random.randrange(5000) / 1000
-    print(f'Delaying! for {delay} seconds...')
+    print(file'Delaying! for {delay} seconds...')
     sleep(delay)
     send(data, addr)
 
@@ -40,11 +40,11 @@ if MODE == 1:
 
 if (MODE == 2) or (MODE == 4):
     DROP_RATE = random.randrange(99)
-    print(f'Dropping {100-DROP_RATE}%')
+    print(file'Dropping {100-DROP_RATE}%')
     
 if (MODE == 3) or (MODE == 4):
     DELAY_RATE = random.randrange(100)
-    print(f'Delaying {100-DELAY_RATE}%')
+    print(file'Delaying {100-DELAY_RATE}%')
 
 
 data, BOB_ADDR = s.recvfrom(101)
@@ -55,15 +55,15 @@ while True:
         drop = random.randrange(100)
         if (len(data) <= 100) and (drop < DROP_RATE):
 
-            print(f'Phiiiii, no drop.... {drop}')
+            print(file'Phiiiii, no drop.... {drop}')
 
             delay = random.randrange(100)
             if (delay > DELAY_RATE):
-                print(f'Good night.... {delay} {DELAY_RATE}')                
+                print(file'Good night.... {delay} {DELAY_RATE}')
                 t = Thread(target = delayed, args = (data, addr, ))
                 t.start()
             else:
-                print(f'Yay, no sleep.... {delay} {DELAY_RATE}')
+                print(file'Yay, no sleep.... {delay} {DELAY_RATE}')
                 send(data, addr)
 
         else:
