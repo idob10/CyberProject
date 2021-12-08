@@ -13,8 +13,8 @@ class DirectoryObserver(FileSystemEventHandler):
         self._filePath = filePath
 
     def on_moved(self, event):
-        if event.is_directory == True and len(os.listdir(event.dest_path))!=0:
-            return
+        '''if event.is_directory == True and len(os.listdir(event.dest_path))!=0:
+            return'''
         # saving the massage
         self._modify_queue.append(event.event_type + ',' + event.src_path[len(self._filePath) + 1 : ]
                                   + ',' + event.dest_path[len(self._filePath) + 1 : ]+','+str(event.is_directory))
@@ -56,7 +56,10 @@ class DirectoryApplayer:
             os.remove(os.path.join(self._folder_path,path))
 
     def moveRename(self, srcPath,dstPath):
-        os.rename(os.path.join(self._folder_path,srcPath), os.path.join(self._folder_path,dstPath))
+        try:
+            os.rename(os.path.join(self._folder_path,srcPath), os.path.join(self._folder_path,dstPath))
+        except:
+            pass
 
     def copy_file(self, filePath):
         with open(os.path.join(self._folder_path, filePath),'wb') as f:
@@ -76,7 +79,7 @@ class DirectoryApplayer:
                     data = self._sock.recv(1024)
 
             self._sock.send(PROTOCOL_ACK.encode())
-            f.close()
+        f.close()
     
     def writeSliceData(self,data,f):
         f.write(data)
@@ -145,4 +148,4 @@ def sendFile(filePath, sock):
             data = f.read(1024)
 
         sendMsg(sock, PROTOCOL_END_OF_FILE)
-        f.close()
+    f.close()
