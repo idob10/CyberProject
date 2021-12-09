@@ -1,11 +1,27 @@
 import os
 from watchdog.events import FileSystemEventHandler
-from server import sendBytesMsg, sendMsg
 
 # protocol constant
 PROTOCOL_ACK = "ACK"
 PROTOCOL_END_OF_FILE ="DONE"
 PROTOCOL_END_OF_MODIFICATION = "FINISH"
+# protocol constant
+NEW_CLIENT_MASSAGE = "new client"
+CLOSE_CONNECTION = "close connection"
+
+def sendMsg(sock,msg):
+    sock.send(msg.encode())
+    r = sock.recv(8192)
+
+def sendBytesMsg(sock,msg):
+    sock.send(msg)
+    r = sock.recv(8192)
+
+def getMsg(sock):
+    msg = sock.recv(8192).decode()
+    sock.send(PROTOCOL_ACK.encode())
+    return msg
+
 
 class DirectoryObserver(FileSystemEventHandler):
     def __init__(self, modify_queue, filePath):
@@ -101,8 +117,6 @@ class DirectoryApplayer:
     def copy_file(self, filePath):
         with open(os.path.join(self._folder_path, filePath),'wb') as f:
             data = self._sock.recv(8192)
-            print("recv bytes")
-
             # getting the data from the socket
             while True:
                 try:
@@ -121,7 +135,6 @@ class DirectoryApplayer:
     def writeSliceData(self,data,f):
         f.write(data)
         self._sock.send(PROTOCOL_ACK.encode())
-        print("send:" + PROTOCOL_ACK)
 
     def createFile(self, filePath,isDir):
         if isDir == "False":

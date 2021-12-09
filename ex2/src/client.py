@@ -1,19 +1,15 @@
 import socket
 import time
-import utils
+from utils import *
 import os
 import sys
-from server import NEW_CLIENT_MASSAGE
-from server import CLOSE_CONNECTION
-from server import sendMsg
-from server import getMsg
 from watchdog.observers import Observer
 
 def connect(sock, path, isNewClient, directoryApplayer):
     # download the current folder at the server
     if not isNewClient:
         msg = getMsg(sock)
-        while msg != utils.PROTOCOL_END_OF_MODIFICATION:
+        while msg != PROTOCOL_END_OF_MODIFICATION:
             directoryApplayer.handleNewModify(msg)
             msg = getMsg(sock)
 
@@ -21,7 +17,7 @@ def connect(sock, path, isNewClient, directoryApplayer):
 def updateServer(sock, directoryApplayer, observer, modify_queue, path):
     # download the new changes
     msg = getMsg(sock)
-    while msg != utils.PROTOCOL_END_OF_MODIFICATION:
+    while msg != PROTOCOL_END_OF_MODIFICATION:
         directoryApplayer.handleNewModify(msg)
         msg = getMsg(sock)
     
@@ -45,13 +41,13 @@ def updateServer(sock, directoryApplayer, observer, modify_queue, path):
                     duplicate = modify_queue.pop(0)
                 create, filePath, isDir = command.split(',')
                 sendMsg(sock, create + ',' + filePath[0 : -1] + ',' +  isDir)
-                utils.sendFile(os.path.join(path,filePath[0 : -1]),sock)
+                sendFile(os.path.join(path,filePath[0 : -1]),sock)
             else:
                 sendMsg(sock, command)
-                utils.sendFile(os.path.join(path,command.split(',')[1]),sock)
+                sendFile(os.path.join(path,command.split(',')[1]),sock)
         elif command.split(',')[0] == "modified":
             sendMsg(sock, command)
-            utils.sendFile(os.path.join(path,command.split(',')[1]),sock)
+            sendFile(os.path.join(path,command.split(',')[1]),sock)
         else:
             sendMsg(sock, command)
 
@@ -75,7 +71,7 @@ def main():
     os.makedirs(path,exist_ok=True)
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.connect((ip, port))
-    directoryApplayer = utils.DirectoryApplayer(path, sock)
+    directoryApplayer = DirectoryApplayer(path, sock)
 
     # In case of a new client
     isNewClient = False
@@ -95,7 +91,7 @@ def main():
 
     #start observing
     modify_queue = []
-    directoryObserver = utils.DirectoryObserver(modify_queue, path)
+    directoryObserver = DirectoryObserver(modify_queue, path)
     observer = Observer()
     observer.schedule(directoryObserver, path, recursive=True)
     observer.start()

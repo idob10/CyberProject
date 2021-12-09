@@ -1,15 +1,11 @@
 import socket
 import string
 import random
-import utils
+from utils import *
 import time
 import os
 import sys
 clientList = {}
-
-# protocol constant
-NEW_CLIENT_MASSAGE = "new client"
-CLOSE_CONNECTION = "close connection"
 
 def id_generator(length):
     chars = string.ascii_uppercase + string.ascii_lowercase + string.digits
@@ -19,29 +15,9 @@ def id_generator(length):
 
     return id
 
-def sendMsg(sock,msg):
-    sock.send(msg.encode())
-    print("send:" + msg)
-    r = sock.recv(8192)
-    print("recv:" + r.decode())
-
-def sendBytesMsg(sock,msg):
-    sock.send(msg)
-    print("sent bytes")
-    r = sock.recv(8192)
-    print("recv:" + r.decode())
-
-def getMsg(sock):
-    msg = sock.recv(8192).decode()
-    print("recv:" + msg)
-    sock.send(utils.PROTOCOL_ACK.encode())
-    print("send:" + utils.PROTOCOL_ACK)
-    return msg
 
 def handleClient(clientSock):
     msg = getMsg(clientSock)
-    print(msg)
-
     id = ""
     clientId = ""
 
@@ -52,8 +28,8 @@ def handleClient(clientSock):
         print (id)
         time.sleep(0.1)
         sendMsg(clientSock, id+","+clientId)
-        clientSock.send(utils.PROTOCOL_ACK.encode())
-        d = utils.DirectoryApplayer(f'./serverFiles/{id}',clientSock)
+        clientSock.send(PROTOCOL_ACK.encode())
+        d = DirectoryApplayer(f'./serverFiles/{id}',clientSock)
         d.createFile("","True")
         clientList[id]={clientId:[]}
     else:
@@ -64,13 +40,13 @@ def handleClient(clientSock):
             clientId = id_generator(10)
         time.sleep(0.5)
         sendMsg(clientSock, id+","+clientId)
-        d = utils.DirectoryApplayer(f'./serverFiles/{id}',clientSock)
+        d = DirectoryApplayer(f'./serverFiles/{id}',clientSock)
         #new client, need to download
         if (clientId not in clientList[id]):
             clientList[id][clientId]=[]
             d.sendDir(f'./serverFiles/{id}')
-            sendMsg(clientSock, utils.PROTOCOL_END_OF_MODIFICATION)
-            clientSock.send(utils.PROTOCOL_ACK.encode())
+            sendMsg(clientSock, PROTOCOL_END_OF_MODIFICATION)
+            clientSock.send(PROTOCOL_ACK.encode())
         else:
             # upload the changes
             while len(clientList[id][clientId]) != 0:
@@ -81,15 +57,15 @@ def handleClient(clientSock):
                     if command.split(',')[2] == "True":
                         d.sendDir(os.path.join(f'./serverFiles/{id}', command.split(',')[1]))
                     else:
-                        utils.sendFile(os.path.join(f'./serverFiles/{id}',command.split(',')[1]), clientSock)
+                        sendFile(os.path.join(f'./serverFiles/{id}',command.split(',')[1]), clientSock)
 
-            sendMsg(clientSock, utils.PROTOCOL_END_OF_MODIFICATION)
-            clientSock.send(utils.PROTOCOL_ACK.encode())
+            sendMsg(clientSock, PROTOCOL_END_OF_MODIFICATION)
+            clientSock.send(PROTOCOL_ACK.encode())
 
     handleCommands(clientSock,clientId,id)
 
 def handleCommands(sock,clientId,id):
-    d = utils.DirectoryApplayer(f'./serverFiles/{id}',sock)
+    d = DirectoryApplayer(f'./serverFiles/{id}',sock)
     while (True): #need to reconect?
         cmd = getMsg(sock)
         if (cmd==CLOSE_CONNECTION):
