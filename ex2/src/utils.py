@@ -56,7 +56,9 @@ class DirectoryApplayer:
             os.remove(os.path.join(self._folder_path,path))
 
     def moveRename(self, srcPath,dstPath):
-        os.rename(os.path.join(self._folder_path,srcPath), os.path.join(self._folder_path,dstPath))
+        #os.makedirs(os.path.dirname(os.path.join(self._folder_path, dstPath)), exist_ok=True)
+        os.renames(os.path.join(self._folder_path,srcPath), os.path.join(self._folder_path,dstPath))
+        os.makedirs(os.path.dirname(os.path.join(self._folder_path,srcPath)), exist_ok=True)
 
     def copy_file(self, filePath):
         with open(os.path.join(self._folder_path, filePath),'wb') as f:
