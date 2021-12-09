@@ -105,7 +105,7 @@ def main():
         return
 
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server.bind(('', sys.argv[1]))
+    server.bind(('', int(sys.argv[1])))
     server.listen(5)
     while True:
         client_socket, client_address = server.accept()

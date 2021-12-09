@@ -58,15 +58,15 @@ def updateServer(sock, directoryApplayer, observer, modify_queue, path):
     directoryApplayer.clear()
 
 def main():
-    if (len(sys.argv)!=5 or len(sys.argv)!=6):
+    if (len(sys.argv)!=5 and len(sys.argv)!=6):
         print("Args are not valid!")
         return
 
     # initialize parameters
     ip = sys.argv[1]
-    port = sys.argv[2]
+    port = int(sys.argv[2])
     path = sys.argv[3]
-    timeout = sys.argv[4]
+    timeout = int(sys.argv[4])
     id = ""
     if (len(sys.argv)==6):
         id = sys.argv[5]
