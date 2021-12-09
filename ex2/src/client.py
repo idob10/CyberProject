@@ -83,7 +83,7 @@ def main():
         sendMsg(sock, NEW_CLIENT_MASSAGE)
         isNewClient = True
         id = getMsg(sock)
-        sock.recv(1024)  # change sending order
+        sock.recv(8192)  # change sending order
     else:
         sendMsg(sock, id)
         id = getMsg(sock)

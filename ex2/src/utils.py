@@ -15,20 +15,57 @@ class DirectoryObserver(FileSystemEventHandler):
     def on_moved(self, event):
         '''if event.is_directory == True and len(os.listdir(event.dest_path))!=0:
             return'''
+        createEvent = "created" + ',' + event.src_path[len(self._filePath) + 1 : ] + ','+str(event.is_directory)
+        modifiedEvent = "modified" + ',' + event.src_path[len(self._filePath) + 1 : ] + ','+str(event.is_directory)
+
+        created = False
+        modified = False
+        for index in range(len(self._modify_queue)):
+            if createEvent == self._modify_queue[index]:
+                created = True
+                self._modify_queue[index] = self._modify_queue[index].replace(event.src_path[len(self._filePath) + 1 : ],
+                                                                                event.dest_path[len(self._filePath) + 1 : ])
+            elif modifiedEvent == self._modify_queue[index]:
+                if modified == False and created == False:
+                    self._modify_queue.insert(index,event.event_type + ',' + event.src_path[len(self._filePath) + 1 : ]
+                                  + ',' + event.dest_path[len(self._filePath) + 1 : ]+','+str(event.is_directory))
+                    self._modify_queue[index+1] = self._modify_queue[index+1].replace(event.src_path[len(self._filePath) + 1 : ],
+                                                                                event.dest_path[len(self._filePath) + 1 : ])
+                else:
+                    self._modify_queue[index] = self._modify_queue[index].replace(event.src_path[len(self._filePath) + 1 : ],
+                                                                                event.dest_path[len(self._filePath) + 1 : ])
+                modified = True
+
+            
         # saving the massage
-        self._modify_queue.append(event.event_type + ',' + event.src_path[len(self._filePath) + 1 : ]
+        if created == False and modified == False:
+            self._modify_queue.append(event.event_type + ',' + event.src_path[len(self._filePath) + 1 : ]
                                   + ',' + event.dest_path[len(self._filePath) + 1 : ]+','+str(event.is_directory))
 
     def on_modified(self, event):
         if (event.is_directory):
             return
         # saving the massage
-        self._modify_queue.append("modified" + ',' + event.src_path[len(self._filePath) + 1 : ] + ',' + "False")
+        modifiedEvent = "modified" + ',' + event.src_path[len(self._filePath) + 1 : ] + ',' + "False"
+        if modifiedEvent in self._modify_queue:
+            return
+        self._modify_queue.append(modifiedEvent)
         # self._modify_queue.append("modified" + ',' + event.src_path[len(self._filePath) + 1 : ]+',' + "False")
 
     def on_deleted(self, event):
         # saving the massage
-        self._modify_queue.append(event.event_type + ',' + event.src_path[len(self._filePath) + 1 : ] +','+str(event.is_directory))
+        createEvent = "created" + ',' + event.src_path[len(self._filePath) + 1 : ] +','+str(event.is_directory)
+        modifiedEvent = "modified" + ',' + event.src_path[len(self._filePath) + 1 : ] +','+str(event.is_directory)
+        created = False
+        if createEvent in self._modify_queue:
+            self._modify_queue.remove(createEvent)
+            created = True
+
+        if modifiedEvent in self._modify_queue:
+            self._modify_queue.remove(modifiedEvent)
+        
+        if created == False:
+            self._modify_queue.append(event.event_type + ',' + event.src_path[len(self._filePath) + 1 : ] +','+str(event.is_directory))
 
     def on_created(self, event):
         # saving the massage
@@ -63,7 +100,7 @@ class DirectoryApplayer:
 
     def copy_file(self, filePath):
         with open(os.path.join(self._folder_path, filePath),'wb') as f:
-            data = self._sock.recv(1024)
+            data = self._sock.recv(8192)
             print("recv bytes")
 
             # getting the data from the socket
@@ -73,10 +110,10 @@ class DirectoryApplayer:
                     if data.decode() == PROTOCOL_END_OF_FILE:
                         break
                     self.writeSliceData(data,f)
-                    data = self._sock.recv(1024)
+                    data = self._sock.recv(8192)
                 except:
                     self.writeSliceData(data,f)
-                    data = self._sock.recv(1024)
+                    data = self._sock.recv(8192)
 
             self._sock.send(PROTOCOL_ACK.encode())
         f.close()
@@ -142,10 +179,10 @@ class DirectoryApplayer:
 
 def sendFile(filePath, sock):
     with open(filePath, 'rb') as f:
-        data = f.read(1024)
+        data = f.read(8192)
         while len(data) != 0:
             sendBytesMsg(sock, data)
-            data = f.read(1024)
+            data = f.read(8192)
 
         sendMsg(sock, PROTOCOL_END_OF_FILE)
     f.close()

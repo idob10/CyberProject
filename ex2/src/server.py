@@ -22,17 +22,17 @@ def id_generator(length):
 def sendMsg(sock,msg):
     sock.send(msg.encode())
     print("send:" + msg)
-    r = sock.recv(1024)
+    r = sock.recv(8192)
     print("recv:" + r.decode())
 
 def sendBytesMsg(sock,msg):
     sock.send(msg)
     print("sent bytes")
-    r = sock.recv(1024)
+    r = sock.recv(8192)
     print("recv:" + r.decode())
 
 def getMsg(sock):
-    msg = sock.recv(1024).decode()
+    msg = sock.recv(8192).decode()
     print("recv:" + msg)
     sock.send(utils.PROTOCOL_ACK.encode())
     print("send:" + utils.PROTOCOL_ACK)
