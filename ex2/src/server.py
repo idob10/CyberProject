@@ -4,6 +4,7 @@ import random
 import utils
 import time
 import os
+import sys
 clientList = {}
 
 # protocol constant
@@ -99,8 +100,12 @@ def handleCommands(sock,clientId,id):
                 value.append(cmd)
 
 def main():
+    if (len(sys.argv)!=2):
+        print("Args are not valid!")
+        return
+
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server.bind(('', 12345))
+    server.bind(('', int(sys.argv[1])))
     server.listen(5)
     while True:
         client_socket, client_address = server.accept()

@@ -58,17 +58,18 @@ def updateServer(sock, directoryApplayer, observer, modify_queue, path):
     directoryApplayer.clear()
 
 def main():
+    if (len(sys.argv)!=5 and len(sys.argv)!=6):
+        print("Args are not valid!")
+        return
+
     # initialize parameters
-    ip = '127.0.0.1'
-    port = 12345
-    path = f"../test"
-    timeout = 5
+    ip = sys.argv[1]
+    port = int(sys.argv[2])
+    path = sys.argv[3]
+    timeout = int(sys.argv[4])
     id = ""
-    args = sys.argv[1:]
-    if (len(args) > 0):
-        path = args[0]
-        if (len(args) > 1):
-            id = args[1]
+    if (len(sys.argv)==6):
+        id = sys.argv[5]
 
     # creating a socket
     os.makedirs(path,exist_ok=True)
