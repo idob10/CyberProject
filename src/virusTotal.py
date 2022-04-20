@@ -6,6 +6,7 @@ import httplib2
 import json
 from win32con import FALSE
 FOLDER_PATH = "serverfiles"
+FLAG_IN_USE = {'state':False}
 
 key = '1654c202896c246e96c4f3d0180aa0879aede79c3eeaa067cd284771a2182049'
 
@@ -54,11 +55,14 @@ def handleChange(change):
 def post_multipart(url, fields, filepath):
     api_url = 'https://www.virustotal.com/vtapi/v2/file/scan' 
     params = dict(apikey=fields['key']) 
-    with open(filepath, 'rb') as file: 
+    with open(filepath, 'rb') as file:
+        FLAG_IN_USE['state'] = True
         files = dict(file=(filepath, file)) 
         response = requests.post(api_url, files=files, params=params) 
         if response.status_code == 200: 
             result=response.json()
+    file.close()
+    FLAG_IN_USE['state'] = False
     return json.dumps(result, sort_keys=False, indent=4)
 
 

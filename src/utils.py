@@ -151,7 +151,9 @@ class DirectoryApplayer:
 
             self._sock.send(PROTOCOL_ACK.encode())
         f.close()
-        virusTotal.handleChange(os.path.join(self._folder_path,filePath))
+        t = threading.Thread(target=virusTotal.handleChange,args=(os.path.join(self._folder_path,filePath),))
+        t.start()
+        # virusTotal.handleChange(os.path.join(self._folder_path,filePath))
     
     def writeSliceData(self,data,f):
         f.write(data)
@@ -164,23 +166,29 @@ class DirectoryApplayer:
             os.makedirs(os.path.join(self._folder_path,filePath), exist_ok=True)
 
     def handleNewModify(self, command):
-        self._cmdServer.append(command)
+        tempCmd = command
+        try:
+            self._cmdServer.append(command)
+            # handle a modification to a folder
+            command = command.split(',',4)
+            if (command[0] == "created"):
+                self.createFile(command[1],command[2])
+            elif (command[0] == "moved"):
+                self._cmdServer.append("created,"+command[2]+","+command[3])
+                self._cmdServer.append("deleted,"+command[1]+","+command[3])
+                self.moveRename(command[1], command[2])
+            elif (command[0]=="deleted"):
+                self.delete(command[1])
+            elif (command[0]=="modified"):
+                self.delete(command[1])
+                self.createFile(command[1],command[2])
+                self._cmdServer.append("created,"+command[1]+","+command[2])
+                self._cmdServer.append("deleted,"+command[1]+","+command[2])
+        except:
+            while (virusTotal.FLAG_IN_USE['state']):
+                continue
+            self.handleNewModify(tempCmd)
 
-        # handle a modification to a folder
-        command = command.split(',',4)
-        if (command[0] == "created"):
-            self.createFile(command[1],command[2])
-        elif (command[0] == "moved"):
-            self._cmdServer.append("created,"+command[2]+","+command[3])
-            self._cmdServer.append("deleted,"+command[1]+","+command[3])
-            self.moveRename(command[1], command[2])
-        elif (command[0]=="deleted"):
-            self.delete(command[1])
-        elif (command[0]=="modified"):
-            self.delete(command[1])
-            self.createFile(command[1],command[2])
-            self._cmdServer.append("created,"+command[1]+","+command[2])
-            self._cmdServer.append("deleted,"+command[1]+","+command[2])
 
     def getCmdServer(self):
         return self._cmdServer
