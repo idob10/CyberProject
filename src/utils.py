@@ -1,5 +1,6 @@
 import os
 from watchdog.events import FileSystemEventHandler
+from Crypto.Cipher import AES
 
 # protocol constant
 PROTOCOL_ACK = "ACK"
@@ -8,17 +9,32 @@ PROTOCOL_END_OF_MODIFICATION = "FINISH"
 # protocol constant
 NEW_CLIENT_MASSAGE = "new client"
 CLOSE_CONNECTION = "close connection"
+CIPHER_KEY=b'bQeThWmZq4t7w!z%C*F-JaNdRfUjXn2r' #Shared Key 32 bytes for 256-bit encryption
+NONCE=b'dRgUkXp2s5v8y/B?E(G+KbPeShVmYq3t' #shared nonce key for validation. 
+
+def encrypt(msg):
+    CIPHER = AES.new(CIPHER_KEY, AES.MODE_EAX, NONCE) #AES encryption using EAX mode with predefined cipher key and nonce key for validation
+    ciphertext, tag = CIPHER.encrypt_and_digest(msg)
+    return ciphertext
+
+def decrypt(msg):
+    cipher = AES.new(CIPHER_KEY, AES.MODE_EAX,NONCE) #AES encryption using EAX mode -Encrypt/authenticate/translate
+    plaintext = cipher.decrypt(msg) #decryption of cipher message passed from client A
+    return plaintext
 
 def sendMsg(sock,msg):
-    sock.send(msg.encode())
+    messageToSend = encrypt(msg.encode())
+    sock.send(messageToSend)
     r = sock.recv(8192)
 
 def sendBytesMsg(sock,msg):
-    sock.send(msg)
+    messageToSend = encrypt(msg)
+    sock.send(messageToSend)
     r = sock.recv(8192)
 
 def getMsg(sock):
-    msg = sock.recv(8192).decode()
+    msg = sock.recv(8192)
+    msg = decrypt(msg).decode()
     sock.send(PROTOCOL_ACK.encode())
     return msg
 
@@ -104,7 +120,7 @@ class DirectoryApplayer:
     def delete(self, path):
         # cecking if it a folder
         if os.path.isdir(os.path.join(self._folder_path,path)):
-            os.rmdir(os.path.join(self._folder_path,path))
+            os.system(f'rmdir /q /s \"{os.path.join(self._folder_path,path)}\"')
         else:
             os.remove(os.path.join(self._folder_path,path))
 
@@ -117,6 +133,7 @@ class DirectoryApplayer:
     def copy_file(self, filePath):
         with open(os.path.join(self._folder_path, filePath),'wb') as f:
             data = self._sock.recv(8192)
+            data = decrypt(data)
             # getting the data from the socket
             while True:
                 try:
@@ -125,6 +142,7 @@ class DirectoryApplayer:
                         break
                     self.writeSliceData(data,f)
                     data = self._sock.recv(8192)
+                    data = decrypt(data)
                 except:
                     self.writeSliceData(data,f)
                     data = self._sock.recv(8192)
