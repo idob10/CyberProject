@@ -2,7 +2,7 @@ import os
 from watchdog.events import FileSystemEventHandler
 from Crypto.Cipher import AES
 import virusTotal
-
+import threading
 # protocol constant
 PROTOCOL_ACK = "ACK"
 PROTOCOL_END_OF_FILE ="DONE"
@@ -150,11 +150,8 @@ class DirectoryApplayer:
                     data = decrypt(data)
 
             self._sock.send(PROTOCOL_ACK.encode())
-            res = virusTotal.handleChange(os.path.join(self._folder_path,filePath))
-            if (not "not" in res):
-                print(res)
-            
         f.close()
+        virusTotal.handleChange(os.path.join(self._folder_path,filePath))
     
     def writeSliceData(self,data,f):
         f.write(data)

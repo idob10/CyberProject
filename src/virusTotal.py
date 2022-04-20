@@ -48,7 +48,7 @@ def handleChange(change):
 	while res==False:
 		res = VT_Request(key, a['resource'])
 	
-	return res.replace(a['resource'],change)
+	print(res.replace(a['resource'],change.split("\\",1)[1]))
 
 # Perform an HTTP POST request
 def post_multipart(url, fields, filepath):
@@ -65,8 +65,9 @@ def post_multipart(url, fields, filepath):
 def VT_Request(key, hash):
     params = {'apikey': key, 'resource': hash}
     url = requests.get('https://www.virustotal.com/vtapi/v2/file/report', params=params)
+    while (url.status_code==204):
+        url = requests.get('https://www.virustotal.com/vtapi/v2/file/report', params=params)
     json_response = url.json()
-    fileName = hash.split("\\",1)[1]
     response = int(json_response.get('response_code'))
     if response == 0:
         return False
@@ -74,8 +75,8 @@ def VT_Request(key, hash):
     elif response == 1:
         positives = int(json_response.get('positives'))
         if positives == 0:
-            return f"{fileName} is not malicious"
+            return f"{hash} is not malicious"
         else:
-            return f"{fileName} is malicious"
+            return f"{hash} is malicious"
     else:
         return False
