@@ -1,5 +1,8 @@
 # Cyber 5 points project
 
+## Description
+This project distributes and synchronizes data among users on the same network.
+
 ## Prerequisites
 This project requires Python (version 3.8 or later) and the following libraries:
 - socket
@@ -45,10 +48,7 @@ $ pip install [libraryName]
 $ python server.py [portNum] # server is running
 $ python client.py [serverIP] [serverPORT] [libraryName] [numOfSeconds] # new user is connected to a new group
 $ python client.py [serverIP] [serverPORT] [libraryName] [numOfSeconds] [token] # new user is connected to an existing group
-$ 
 ```
-
-## Features
 
 
 ## Author
