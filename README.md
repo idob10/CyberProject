@@ -50,7 +50,6 @@ $ python client.py [serverIP] [serverPORT] [libraryName] [numOfSeconds] # new us
 $ python client.py [serverIP] [serverPORT] [libraryName] [numOfSeconds] [token] # new user is connected to an existing group
 ```
 
-
 ## Author
 
 * **Ido Barkai** - [Ido Barkai](https://github.com/idob10)
