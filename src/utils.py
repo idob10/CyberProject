@@ -98,7 +98,7 @@ class DirectoryObserver(FileSystemEventHandler):
             self._modify_queue.remove(modifiedEvent)
         
         if created == False:
-            self._modify_queue.append(event.event_type + ',' + event.src_path[len(self._filePath) + 1 : ] +','+str(event.is_directory))
+            self._modify_queue.insert(0,event.event_type + ',' + event.src_path[len(self._filePath) + 1 : ] +','+str(event.is_directory))
 
     def on_created(self, event):
         # saving the massage
@@ -114,16 +114,21 @@ class DirectoryApplayer:
         self._folder_path = folder_path
         self._sock = sock
         self._cmdServer = []
+        self.lastPath = "randomPath"
 
     def set_sock(self, sock):
         self._sock = sock
 
     def delete(self, path):
+        try:
         # cecking if it a folder
-        if os.path.isdir(os.path.join(self._folder_path,path)):
-            os.system(f'rmdir /q /s \"{os.path.join(self._folder_path,path)}\"')
-        else:
-            os.remove(os.path.join(self._folder_path,path))
+            if os.path.isdir(os.path.join(self._folder_path,path)):
+                self.lastPath = path
+                os.system(f'rmdir /q /s \"{os.path.join(self._folder_path,path)}\"')
+            else:
+                os.remove(os.path.join(self._folder_path,path))
+        except:
+            pass
 
     def moveRename(self, srcPath,dstPath):
         try:
@@ -151,8 +156,8 @@ class DirectoryApplayer:
 
             self._sock.send(PROTOCOL_ACK.encode())
         f.close()
-        t = threading.Thread(target=virusTotal.handleChange,args=(os.path.join(self._folder_path,filePath),))
-        t.start()
+        #t = threading.Thread(target=virusTotal.handleChange,args=(os.path.join(self._folder_path,filePath),))
+        #t.start()
         # virusTotal.handleChange(os.path.join(self._folder_path,filePath))
     
     def writeSliceData(self,data,f):
